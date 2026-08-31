@@ -22,6 +22,7 @@ from amazon_ai_api.orchestration.audit import (
     PostgresAuditWriter,
 )
 from amazon_ai_api.orchestration.supervisor import JarvisSupervisor
+from amazon_ai_api.orchestration.openai_runtime import HomeAIComposer, OpenAIHomeComposer
 from amazon_ai_api.orchestration.tool_gateway import ToolGateway
 from amazon_ai_api.services.home_composition import HomeCompositionService
 from amazon_ai_api.services.business_clock import BusinessClock
@@ -32,6 +33,7 @@ def create_app(
     settings: Settings | None = None,
     repository: StoreMetricsRepository | None = None,
     audit_writer: AuditWriter | None = None,
+    ai_composer: HomeAIComposer | None = None,
     logical_now: datetime | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
@@ -56,9 +58,16 @@ def create_app(
         audit_writer=audit_writer,
     )
     store_agent = StoreOperationsAgent(tool_gateway)
+    if ai_composer is None and settings.openai_enabled and settings.openai_api_key:
+        ai_composer = OpenAIHomeComposer(
+            api_key=settings.openai_api_key,
+            model=settings.openai_model,
+            component_registry=registries_bundle.components,
+        )
     supervisor = JarvisSupervisor(
         store_agent=store_agent,
         deterministic_composer=home_service,
+        ai_composer=ai_composer,
     )
 
     @asynccontextmanager

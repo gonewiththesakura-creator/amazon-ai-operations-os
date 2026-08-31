@@ -11,6 +11,7 @@ from amazon_ai_api.orchestration.agents.store_operations import (
     StoreAgentResult,
     StoreOperationsAgent,
 )
+from amazon_ai_api.orchestration.openai_runtime import HomeAIComposer
 from amazon_ai_api.services.home_composition import HomeCompositionService
 
 
@@ -35,9 +36,11 @@ class JarvisSupervisor:
         *,
         store_agent: StoreOperationsAgent,
         deterministic_composer: HomeCompositionService,
+        ai_composer: HomeAIComposer | None = None,
     ) -> None:
         self._store_agent = store_agent
         self._deterministic_composer = deterministic_composer
+        self._ai_composer = ai_composer
 
     async def daily_home_run(
         self, *, tenant_id: UUID, marketplace: str, business_date: date
@@ -52,7 +55,7 @@ class JarvisSupervisor:
             marketplace=marketplace,
             business_date=business_date,
         )
-        composition = candidate.model_copy(
+        deterministic = candidate.model_copy(
             update={
                 "overall_judgment": agent_result.summary,
                 "judgment_reasons": tuple(
@@ -61,10 +64,21 @@ class JarvisSupervisor:
                 ),
             }
         )
+        composition = HomeComposition.model_validate(deterministic.model_dump())
+        if self._ai_composer is not None:
+            try:
+                composition = self._ai_composer.compose(
+                    candidate=composition,
+                    findings=agent_result.findings,
+                )
+            except Exception:
+                composition = self._with_ai_mode(composition, "DETERMINISTIC_FALLBACK")
+        else:
+            composition = self._with_ai_mode(composition, "DETERMINISTIC_FALLBACK")
         return DailyHomeRun(
             trigger=TriggerType.DAILY_HOME,
             agent_result=agent_result,
-            composition=HomeComposition.model_validate(composition.model_dump()),
+            composition=composition,
         )
 
     async def daily_home(
@@ -76,3 +90,10 @@ class JarvisSupervisor:
             business_date=business_date,
         )
         return run.composition
+
+    @staticmethod
+    def _with_ai_mode(composition: HomeComposition, mode: str) -> HomeComposition:
+        updated = composition.model_copy(
+            update={"data_status": composition.data_status.model_copy(update={"ai_mode": mode})}
+        )
+        return HomeComposition.model_validate(updated.model_dump())

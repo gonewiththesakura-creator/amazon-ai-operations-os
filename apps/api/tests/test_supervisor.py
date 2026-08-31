@@ -56,3 +56,21 @@ async def test_supervisor_runs_agent_before_validated_home_composition() -> None
     assert run.composition.overall_judgment == run.agent_result.summary
     assert run.composition.data_status.ai_mode == "DETERMINISTIC_FALLBACK"
     assert all(reason.evidence_refs for reason in run.composition.judgment_reasons)
+
+
+@pytest.mark.asyncio
+async def test_supervisor_falls_back_when_openai_composer_fails() -> None:
+    supervisor, _ = build_supervisor()
+
+    class FailingComposer:
+        def compose(self, **_: object):
+            raise RuntimeError("provider unavailable")
+
+    supervisor._ai_composer = FailingComposer()
+    composition = await supervisor.daily_home(
+        tenant_id=TENANT_A,
+        marketplace="ATVPDKIKX0DER",
+        business_date=date(2026, 8, 31),
+    )
+
+    assert composition.data_status.ai_mode == "DETERMINISTIC_FALLBACK"
