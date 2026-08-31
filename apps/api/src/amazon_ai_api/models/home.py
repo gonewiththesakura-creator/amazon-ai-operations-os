@@ -99,6 +99,7 @@ class DataStatus(BaseModel):
     synthetic: bool
     updated_at: datetime
     source_names: tuple[str, ...] = Field(min_length=1)
+    ai_mode: str = Field(pattern=r"^(ENABLED|DETERMINISTIC_FALLBACK)$")
 
 
 class HomeBlock(BaseModel):

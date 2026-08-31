@@ -34,14 +34,15 @@ class HomeSnapshot(BaseModel):
     orders: int = Field(ge=0)
     units: int = Field(ge=0)
     sales: float = Field(ge=0)
-    baseline_orders: int = Field(ge=0)
+    baseline_orders: float = Field(ge=0)
+    baseline_sessions: float = Field(ge=0)
+    baseline_units: float = Field(ge=0)
     ad_spend: float = Field(ge=0)
     ad_sales: float = Field(ge=0)
     positive_metric_value: float
     positive_metric_delta_pct: float
-    competitor_count: int = Field(ge=0)
-    product_candidate_count: int = Field(ge=0)
-    product_opportunity_score: float = Field(ge=0, le=100)
+    data_maturity: str
+    attribution_window: str
     provenance_by_domain: dict[str, ProvenanceEnvelope]
 
     @computed_field
@@ -79,7 +80,5 @@ class Adapter(ABC):
         tenant_id: UUID,
         marketplace: str,
         business_date: date,
-        state: HomeState,
     ) -> HomeSnapshot:
         raise NotImplementedError
-

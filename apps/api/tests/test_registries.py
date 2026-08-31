@@ -71,7 +71,7 @@ def test_component_registry_rejects_payload_not_matching_registered_schema(
     bundle = build_default_registries()
     response = client.get("/v1/home/composition", headers=tenant_headers)
     raw_block = response.json()["blocks"][0]
-    raw_block["payload"].pop("orders")
+    raw_block["payload"].pop("summary")
     block = HomeBlock.model_validate(raw_block)
 
     with pytest.raises(RegistryError, match="invalid payload"):
@@ -92,4 +92,3 @@ def test_openapi_and_registry_expose_no_external_execution_capability(
         "READ_ONLY",
         "INTERNAL_DRAFT_WRITE",
     }
-

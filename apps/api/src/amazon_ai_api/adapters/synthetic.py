@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time, timedelta, timezone
-from uuid import NAMESPACE_URL, UUID, uuid5
+from datetime import date
+from uuid import UUID
 
 from amazon_ai_api.adapters.base import Adapter, AdapterDescriptor, HomeSnapshot
+from amazon_ai_api.db.repositories.store_metrics import StoreMetricsRepository
 from amazon_ai_api.models.home import HomeState
 from amazon_ai_api.models.provenance import (
     DataPeriod,
@@ -13,14 +14,26 @@ from amazon_ai_api.models.provenance import (
     SourceKind,
     SourceReference,
 )
+from amazon_ai_api.services.analytics.store import (
+    analyze_ads,
+    compare_store_orders,
+    detect_store_order_anomaly,
+)
+from amazon_ai_api.services.business_clock import BusinessClock
 
 
 class SyntheticAdapter(Adapter):
     _descriptor = AdapterDescriptor(
-        adapter_id="synthetic_m0",
+        adapter_id="synthetic_postgres_m1",
         mode="SYNTHETIC",
-        capabilities=("home_snapshot", "store_daily", "ads_daily", "market_signals"),
+        capabilities=("home_snapshot", "store_daily", "sp_ads_daily"),
     )
+
+    def __init__(
+        self, *, repository: StoreMetricsRepository, business_clock: BusinessClock
+    ) -> None:
+        self._repository = repository
+        self._clock = business_clock
 
     @property
     def descriptor(self) -> AdapterDescriptor:
@@ -32,131 +45,100 @@ class SyntheticAdapter(Adapter):
         tenant_id: UUID,
         marketplace: str,
         business_date: date,
-        state: HomeState,
     ) -> HomeSnapshot:
-        if state not in {HomeState.NORMAL, HomeState.ORDER_AD_ANOMALY}:
-            raise ValueError(f"synthetic M0 adapter does not implement state: {state.value}")
-
-        collected_at = datetime.combine(business_date + timedelta(days=1), time(8), timezone.utc)
-        provenance = self._build_provenance(
-            tenant_id=tenant_id,
-            marketplace=marketplace,
-            business_date=business_date,
-            collected_at=collected_at,
+        store = self._repository.get_store_daily_summary(
+            tenant_id=tenant_id, marketplace=marketplace, business_date=business_date
         )
-        if state is HomeState.NORMAL:
-            values = {
-                "sessions": 548,
-                "orders": 26,
-                "units": 28,
-                "sales": 1117.72,
-                "baseline_orders": 23,
-                "ad_spend": 126.48,
-                "ad_sales": 421.37,
-                "positive_metric_value": 5.11,
-                "positive_metric_delta_pct": 8.72,
-                "competitor_count": 4,
-                "product_candidate_count": 3,
-                "product_opportunity_score": 78.0,
-            }
-        else:
-            values = {
-                "sessions": 302,
-                "orders": 9,
-                "units": 9,
-                "sales": 374.91,
-                "baseline_orders": 24,
-                "ad_spend": 191.36,
-                "ad_sales": 212.58,
-                "positive_metric_value": 3.44,
-                "positive_metric_delta_pct": -22.7,
-                "competitor_count": 4,
-                "product_candidate_count": 2,
-                "product_opportunity_score": 66.0,
-            }
+        ads = self._repository.get_ads_daily_summary(
+            tenant_id=tenant_id, marketplace=marketplace, business_date=business_date
+        )
+        comparison = compare_store_orders(store)
+        anomaly = detect_store_order_anomaly(comparison)
+        ad_metrics = analyze_ads(ads)
+        collected_at = max(store.collected_at, ads.collected_at)
+        period_start, period_end = self._clock.business_day_period(business_date)
+
         return HomeSnapshot(
             tenant_id=tenant_id,
             marketplace=marketplace,
             business_date=business_date,
-            state=state,
+            state=HomeState.ORDER_AD_ANOMALY if anomaly.detected else HomeState.NORMAL,
             collected_at=collected_at,
-            provenance_by_domain=provenance,
-            **values,
-        )
-
-    @staticmethod
-    def _build_provenance(
-        *,
-        tenant_id: UUID,
-        marketplace: str,
-        business_date: date,
-        collected_at: datetime,
-    ) -> dict[str, ProvenanceEnvelope]:
-        start = datetime.combine(business_date, time.min, timezone.utc)
-        end = datetime.combine(business_date, time.max, timezone.utc)
-        period = DataPeriod(start=start, end=end)
-
-        def envelope(
-            domain: str,
-            source_name: str,
-            grain: str,
-            date_basis: DateBasis,
-            attribution_window: str,
-            *,
-            estimated: bool = False,
-            semantic_kind: SemanticSourceKind = SemanticSourceKind.FIRST_PARTY,
-            confidence: float = 1.0,
-        ) -> ProvenanceEnvelope:
-            record_id = uuid5(
-                NAMESPACE_URL,
-                f"{tenant_id}:{marketplace}:{business_date.isoformat()}:{domain}",
-            )
-            return ProvenanceEnvelope(
-                source=(
-                    SourceReference(
-                        name=source_name,
-                        source_kind=SourceKind.SYNTHETIC,
-                        semantic_source_kind=semantic_kind,
+            sessions=store.sessions,
+            orders=store.orders,
+            units=store.units,
+            sales=float(store.sales),
+            baseline_orders=store.baseline_orders,
+            baseline_sessions=store.baseline_sessions,
+            baseline_units=store.baseline_units,
+            ad_spend=float(ads.spend),
+            ad_sales=float(ads.attributed_sales),
+            positive_metric_value=comparison.current_cvr_pct,
+            positive_metric_delta_pct=comparison.cvr_delta_pct,
+            data_maturity=(
+                "PROVISIONAL"
+                if "PROVISIONAL" in {store.maturity, ads.maturity}
+                else "MATURED"
+            ),
+            attribution_window=ads.attribution_window,
+            provenance_by_domain={
+                "retail": ProvenanceEnvelope(
+                    source=tuple(
+                        SourceReference(
+                            name=source,
+                            source_kind=SourceKind.SYNTHETIC,
+                            semantic_source_kind=SemanticSourceKind.FIRST_PARTY,
+                        )
+                        for source in store.source_names
+                    ),
+                    collected_at=store.collected_at,
+                    data_period=DataPeriod(start=period_start, end=period_end),
+                    marketplace=marketplace,
+                    timezone=self._clock.timezone_name,
+                    currency="USD",
+                    grain="STORE_DAY",
+                    date_basis=DateBasis.ORDER_DATE,
+                    attribution_window="NOT_APPLICABLE",
+                    is_estimated=False,
+                    synthetic=store.synthetic,
+                    confidence=1.0,
+                    limitations=(
+                        f"Qualified baseline uses {store.qualified_baseline_days} matured days.",
+                    ),
+                    raw_record_reference=(
+                        f"postgres:retail.fact_sales_traffic_daily:{tenant_id}:{business_date}",
                     ),
                 ),
-                collected_at=collected_at,
-                data_period=period,
-                marketplace=marketplace,
-                timezone="America/Los_Angeles",
-                currency="USD",
-                grain=grain,
-                date_basis=date_basis,
-                attribution_window=attribution_window,
-                is_estimated=estimated,
-                synthetic=True,
-                confidence=confidence,
-                limitations=("Synthetic M0 fixture; not connected to an Amazon account.",),
-                raw_record_reference=(f"raw:synthetic:{record_id}",),
-            )
-
-        return {
-            "retail": envelope(
-                "retail",
-                "synthetic-sp-api",
-                "STORE_DAY",
-                DateBasis.ORDER_DATE,
-                "NOT_APPLICABLE",
-            ),
-            "ads": envelope(
-                "ads",
-                "synthetic-amazon-ads",
-                "STORE_TRAFFIC_DAY",
-                DateBasis.TRAFFIC_DATE,
-                "14_DAY_CLICK",
-            ),
-            "market": envelope(
-                "market",
-                "synthetic-market-fixture",
-                "MARKETPLACE_DAY",
-                DateBasis.SNAPSHOT_TIME,
-                "NOT_APPLICABLE",
-                estimated=True,
-                semantic_kind=SemanticSourceKind.THIRD_PARTY_ESTIMATE,
-                confidence=0.78,
-            ),
-        }
+                "ads": ProvenanceEnvelope(
+                    source=tuple(
+                        SourceReference(
+                            name=source,
+                            source_kind=SourceKind.SYNTHETIC,
+                            semantic_source_kind=SemanticSourceKind.FIRST_PARTY,
+                        )
+                        for source in ads.source_names
+                    ),
+                    collected_at=ads.collected_at,
+                    data_period=DataPeriod(start=period_start, end=period_end),
+                    marketplace=marketplace,
+                    timezone=self._clock.timezone_name,
+                    currency="USD",
+                    grain="STORE_AD_DAY",
+                    date_basis=DateBasis.TRAFFIC_DATE,
+                    attribution_window=ads.attribution_window,
+                    is_estimated=False,
+                    synthetic=ads.synthetic,
+                    confidence=1.0 if ads.maturity == "MATURED" else 0.78,
+                    limitations=(
+                        (
+                            "Sponsored Products attribution is provisional until the 14-day window matures."
+                            if ads.maturity == "PROVISIONAL"
+                            else "Synthetic Sponsored Products data; not connected to an Amazon account."
+                        ),
+                    ),
+                    raw_record_reference=(
+                        f"postgres:ads.fact_sp_advertising_daily:{tenant_id}:{business_date}",
+                    ),
+                ),
+            },
+        )

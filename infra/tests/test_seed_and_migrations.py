@@ -252,6 +252,9 @@ class MigrationContractTests(unittest.TestCase):
         )
         tenant_tables = {name for name, body in table_blocks if re.search(r"\btenant_id\s+uuid\b", body)}
         policy_targets = set(re.findall(r"'([a-z_]+\.[a-z_]+)'::regclass", self.sql))
+        policy_targets.update(
+            re.findall(r"CREATE POLICY\s+\w+\s+ON\s+([a-z_]+\.[a-z_]+)", self.sql, re.IGNORECASE)
+        )
         policy_targets.add("iam.tenants")
         self.assertFalse(tenant_tables.difference(policy_targets), tenant_tables.difference(policy_targets))
         self.assertIn("NOBYPASSRLS", self.sql)
@@ -279,7 +282,7 @@ class ComposeContractTests(unittest.TestCase):
         self.assertRegex(compose, r"(?m)^  web:\s*$")
         self.assertRegex(compose, r"(?m)^  api:\s*$")
         self.assertIn("context: ./apps/web", compose)
-        self.assertIn("context: ./apps/api", compose)
+        self.assertIn("dockerfile: apps/api/Dockerfile", compose)
         self.assertGreaterEqual(compose.count("healthcheck:"), 4)
         self.assertTrue((ROOT / "apps" / "web" / "Dockerfile").is_file())
         self.assertTrue((ROOT / "apps" / "api" / "Dockerfile").is_file())
