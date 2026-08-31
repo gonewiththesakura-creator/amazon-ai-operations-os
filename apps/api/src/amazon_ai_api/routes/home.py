@@ -1,0 +1,29 @@
+from datetime import date
+
+from fastapi import APIRouter, HTTPException, Query, Request
+
+from amazon_ai_api.models.home import HomeComposition, HomeState
+from amazon_ai_api.routes.dependencies import TenantId
+
+
+router = APIRouter(prefix="/v1/home", tags=["home"])
+
+
+@router.get("/composition", response_model=HomeComposition)
+async def get_home_composition(
+    request: Request,
+    tenant_id: TenantId,
+    state: HomeState = Query(default=HomeState.NORMAL),
+    business_date: date = Query(default=date(2026, 8, 30)),
+    marketplace: str = Query(default="ATVPDKIKX0DER", min_length=1, max_length=32),
+) -> HomeComposition:
+    try:
+        return await request.app.state.home_service.get_composition(
+            tenant_id=tenant_id,
+            marketplace=marketplace,
+            business_date=business_date,
+            state=state,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
