@@ -134,9 +134,9 @@ class StoreOperationsAgent:
             ),
         )
         summary = (
-            f"Orders changed {orders_delta:+.2f}%. Sessions changed {sessions_delta:+.2f}% "
-            f"and CVR changed {cvr_delta:+.2f}%, so traffic alone does not explain the result. "
-            f"Sponsored Products attribution is {ad_values['maturity']}."
+            f"今日订单较合格基线变化 {orders_delta:+.2f}%。Sessions 变化 "
+            f"{sessions_delta:+.2f}%，CVR 变化 {cvr_delta:+.2f}%，因此流量变化不能单独解释"
+            f"订单结果；Sponsored Products 归因状态为 {ad_values['maturity']}。"
         )
         return StoreAgentResult(
             run_id=self._id(tenant_id, marketplace, business_date, f"run:{question or 'daily'}"),
