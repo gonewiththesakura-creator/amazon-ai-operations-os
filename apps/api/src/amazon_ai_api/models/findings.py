@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -25,6 +26,8 @@ class FindingEnvelope(BaseModel):
     claim: str = Field(min_length=1, max_length=800)
     evidence_refs: tuple[EvidenceReference, ...] = Field(min_length=1)
     data_period: DataPeriod
+    source: tuple[str, ...] = Field(min_length=1)
+    updated_at: datetime
     confidence: float = Field(ge=0, le=1)
     causal_status: CausalStatus
     limitations: tuple[str, ...]
@@ -39,4 +42,3 @@ class FindingEnvelope(BaseModel):
         ):
             raise ValueError("CONFIRMED_CAUSAL requires experiment evidence")
         return self
-
