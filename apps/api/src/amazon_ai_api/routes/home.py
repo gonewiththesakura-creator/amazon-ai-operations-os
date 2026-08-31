@@ -17,7 +17,7 @@ async def get_home_composition(
     marketplace: str = Query(default="ATVPDKIKX0DER", min_length=1, max_length=32),
 ) -> HomeComposition:
     try:
-        return await request.app.state.home_service.get_composition(
+        return await request.app.state.supervisor.daily_home(
             tenant_id=tenant_id,
             marketplace=marketplace,
             business_date=business_date or request.app.state.business_clock.current_business_date(),
