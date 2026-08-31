@@ -23,6 +23,8 @@ export type FindingEnvelope = {
   claim: string;
   evidence_refs: EvidenceReference[];
   data_period: { start: string; end: string };
+  source: string[];
+  updated_at: string;
   confidence: number;
   causal_status: "OBSERVED" | "ASSOCIATION" | "HYPOTHESIS" | "CONFIRMED_CAUSAL";
   limitations: string[];
@@ -40,4 +42,3 @@ export type ChatResponse = {
   ai_run_id: string;
   synthetic: boolean;
 };
-

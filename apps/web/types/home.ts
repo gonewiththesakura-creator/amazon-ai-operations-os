@@ -95,7 +95,7 @@ export type DataStatus = {
   synthetic: boolean;
   updated_at: string;
   source_names: string[];
-  ai_mode?: "ENABLED" | "DETERMINISTIC_FALLBACK";
+  ai_mode: "ENABLED" | "DETERMINISTIC_FALLBACK";
 };
 
 export type HomeBlock = {
@@ -136,4 +136,3 @@ export type HomeComposition = {
   blocks: HomeBlock[];
   synthetic: boolean;
 };
-

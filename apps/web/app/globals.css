@@ -134,6 +134,19 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outl
 .chat-assistant p { color: var(--text); }
 .chat-evidence { grid-column: 2; display: flex; gap: 6px; flex-wrap: wrap; }
 .chat-evidence code { border: 1px solid var(--line-soft); padding: 3px 5px; color: var(--teal); font-size: 9px; }
+.chat-finding-details { grid-column: 2; margin-top: 3px; border-top: 1px solid var(--line-soft); padding-top: 8px; }
+.chat-finding-details > summary { cursor: pointer; color: var(--dim); font-size: 10px; }
+.chat-finding { margin-top: 9px; border-left: 2px solid var(--line); padding: 8px 10px; background: #11181b; }
+.chat-finding > div:first-child { display: flex; justify-content: space-between; gap: 12px; }
+.chat-finding strong { color: var(--text); font-size: 10px; }
+.chat-finding span, .chat-finding small { color: var(--dim); font-size: 9px; }
+.chat-finding p { margin: 6px 0; font-size: 11px; }
+.chat-finding dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 12px; margin: 7px 0; }
+.chat-finding dl div { min-width: 0; }
+.chat-finding dt { color: var(--dim); font-size: 8px; text-transform: uppercase; }
+.chat-finding dd { overflow-wrap: anywhere; margin: 2px 0 0; color: var(--muted); font-size: 9px; }
+.chat-finding code { display: block; overflow-wrap: anywhere; margin: 4px 0; color: var(--teal); font-size: 8px; }
+.chat-finding small { display: block; margin-top: 6px; line-height: 1.5; }
 .runtime-block { margin-top: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 16px 18px; }
 .runtime-critical_alert { border-left: 3px solid var(--red); background: #171515; }
 .runtime-positive_signal { border-left: 3px solid var(--teal); }
