@@ -1,96 +1,142 @@
 # Amazon AI Operations OS
 
-> 当前状态：`M0_LOCAL_VALIDATED`。已提供并验证可运行 Web/API 壳、PostgreSQL 迁移、合成数据生成器与契约测试；当前机器未安装 Docker/psql，容器启动与真实 PostgreSQL 迁移仍待具备运行时后复验。尚未接入任何真实 Amazon 或第三方 API。
+> Current milestone: `M1_JARVIS_VERTICAL_SLICE_IMPLEMENTED`
 
-第一版面向美国站、20 个以内自有 ASIN，并包含跨类目选品市场数据。目标是形成可追溯的运营闭环：
+Amazon AI Operations OS is an AI-native operating workspace for Amazon store operations and product research. M1 implements one end-to-end scenario with synthetic data:
 
-`数据采集 -> 数据校验 -> 指标计算 -> 异常发现 -> 原因归因 -> 生成建议 -> 用户审批 -> 效果复盘`
+> Why did orders fall today, and what should I do now?
 
-第一版只生成建议与审批草案，不会自动修改广告、Listing 或价格。所有演示数据均须标记 `synthetic=true`，界面不得将模拟适配器显示为真实连接。
+The running path is:
 
-MVP 只生成建议与审批草案，批准后停留在 `APPROVED_NOT_EXECUTED`。Tool Registry 不包含 Amazon 外部写能力。所有演示数据都必须为 `synthetic=true`，界面固定显示模拟状态。
+`PostgreSQL -> deterministic metrics -> Tool Gateway -> Store Operations Agent -> Jarvis Supervisor -> HomeComposition / Chat API -> Next.js`
 
-## M0 工程结构
+All demo records and UI outputs are marked `synthetic=true`. The MVP is read-only: it can create recommendations and approval drafts, but it has no Amazon write tool and does not connect to Amazon or third-party production APIs.
 
-| 路径 | 内容 |
-|---|---|
-| `apps/web` | Next.js 16、React 19、TypeScript 动态首页运行壳 |
-| `apps/api` | FastAPI、Pydantic Schema、SyntheticAdapter、三类 Registry |
-| `infra/postgres/migrations` | PostgreSQL 16、RBAC/RLS、选品/采购/AI 工作流迁移 |
-| `infra/tests` | 迁移、RLS、写保护、OCR 门槛和数据规模契约测试 |
-| `scripts/seed_synthetic.py` | 可复现的 41,060 条合成数据生成器 |
-| `docker-compose.yml` | Web、API、PostgreSQL 与 MinIO 本地编排 |
+## Capability Matrix
 
-## 本地启动
+| Capability | Status | Notes |
+|---|---|---|
+| Next.js three-column workspace | IMPLEMENTED | API loading/error/empty/data status, context rail, persistent chat input |
+| FastAPI runtime | IMPLEMENTED | Home, chat, health, and registry endpoints |
+| PostgreSQL schema and RLS | IMPLEMENTED | Migrations `0001` through `0005`, tenant-scoped application role |
+| Synthetic generator | IMPLEMENTED | 20 owned ASINs, 365 days, product-research and procurement domains |
+| PostgreSQL synthetic ingestion | IMPLEMENTED | Idempotent loader with provenance and `synthetic=true` |
+| Deterministic store analytics | IMPLEMENTED | Orders, funnel, comparison, anomaly, and SP attribution metrics |
+| Tool Registry | IMPLEMENTED | 22 safe definitions; no external mutation tools |
+| Tool Gateway | IMPLEMENTED | Four real read tools; all others return `NOT_IMPLEMENTED` |
+| Store Operations Agent | IMPLEMENTED | First bounded domain-agent vertical slice |
+| Jarvis Supervisor | IMPLEMENTED | `DAILY_HOME` and contextual store-question control paths |
+| OpenAI structured orchestration | IMPLEMENTED, OPTIONAL | Disabled by default; strict schema/evidence guard and fallback |
+| Contextual chat | IMPLEMENTED | Multi-turn context with evidence-backed Findings |
+| Other 11 domain Agent runtimes | DESIGNED | Registered contracts only, not runtime implementations |
+| Amazon SP-API / Ads API | NOT_IMPLEMENTED | Adapter boundary only |
+| SellerSprite / Keepa / public-source ingestion | NOT_IMPLEMENTED | No production connectors in M1 |
+| Amazon external writes | NOT_IMPLEMENTED | Explicitly forbidden in MVP |
 
-### Docker Compose
+## M1 Demo
 
-前置条件：Docker Desktop 可用。
+The seeded final business day is intentionally anomalous. The Home API automatically selects `ORDER_AD_ANOMALY` and returns registered blocks including Critical Alert, Order Funnel, Sponsored Products diagnosis, priority action, data reference, and follow-up question.
+
+Ask the UI:
+
+```text
+为什么今天订单下降？
+我现在应该先改广告吗？
+```
+
+The second answer carries the previous run context, labels Sponsored Products attribution `PROVISIONAL`, and does not recommend an immediate bid or budget change before availability and conversion checks.
+
+## Local Setup
+
+Prerequisites:
+
+- Node.js 22+
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/)
+- PostgreSQL 16, or Docker Desktop
+
+Copy local configuration:
 
 ```powershell
 Copy-Item .env.example .env
+```
+
+Never commit `.env` or API credentials.
+
+### Docker Compose
+
+```powershell
 docker compose up --build
 ```
 
-启动后：
+Fresh PostgreSQL volumes apply all migrations and the `seed` service loads the synthetic workspace before the API starts.
 
-- Web：`http://localhost:3000`
-- API：`http://localhost:8000`
-- OpenAPI：`http://localhost:8000/docs`
-- MinIO Console：`http://localhost:9001`
-
-迁移在全新 PostgreSQL volume 初始化时按编号自动执行。已有 volume 如需升级，应使用正式迁移任务，不要删除生产数据卷。
-
-### 无 Docker 本地运行
+### Native Development
 
 ```powershell
-python -m pip install -e "apps/api[dev]"
-npm install --prefix apps/web
+uv sync --project apps/api --extra dev
+npm ci --prefix apps/web
+npm run seed:synthetic
 ```
 
-两个终端分别运行：
+Start two terminals:
 
 ```powershell
 npm run dev:api
 npm run dev:web
 ```
 
-### 测试与合成数据
+Open:
+
+- Web: `http://127.0.0.1:3000`
+- API: `http://127.0.0.1:8000`
+- OpenAPI: `http://127.0.0.1:8000/docs`
+
+Amazon US business dates are assigned in `America/Los_Angeles`. Database timestamps remain UTC and provenance retains the original source timezone. The UI can display Los Angeles, China, or browser-local time without changing business-day ownership.
+
+## Optional OpenAI Mode
+
+The default is deterministic fallback:
+
+```dotenv
+APP_DATA_MODE=SYNTHETIC
+OPENAI_ENABLED=false
+OPENAI_API_KEY=
+```
+
+To use structured orchestration, set `OPENAI_ENABLED=true`, provide `OPENAI_API_KEY`, and select `OPENAI_MODEL`. The model may only select/reorder candidate blocks and produce schema-valid narrative fields. It cannot introduce component IDs, metric payloads, evidence, provenance, actions, or external writes. Invalid output retries once, then returns `DETERMINISTIC_FALLBACK`.
+
+## Verification
 
 ```powershell
 npm run test:all
 npm run build
-npm run seed:synthetic
 ```
 
-合成数据固定使用美国站 `America/Los_Angeles` 业务日期，时间戳保存 UTC，并保留来源原始时区。默认 seed checksum 为 `eff0a89cd960fdca0977e289d0cd1afbe6ae8208c994f6274e32b280488af355`。
+With PostgreSQL available, set both `DATABASE_URL` and `TEST_DATABASE_URL` to include repository and cross-tenant integration tests. GitHub Actions provisions PostgreSQL 16, applies migrations, loads synthetic data, and runs backend, infrastructure/security, frontend, and production-build checks on every push and pull request.
 
-## 设计与契约
+## Repository Map
+
+| Path | Purpose |
+|---|---|
+| `apps/web` | Next.js 16 frontend, component registry, contextual chat |
+| `apps/api` | FastAPI, repository, analytics, Tool Gateway, Agent, Supervisor |
+| `infra/postgres/migrations` | PostgreSQL schemas, RLS/RBAC, audit and M1 ads facts |
+| `infra/tests` | Migration, RLS, write-protection, OCR, and scale contracts |
+| `scripts/seed_synthetic.py` | Reproducible synthetic fixture generation and DB loader |
+| `docs/12-m1-runtime.md` | Implemented M1 architecture and remaining boundaries |
+
+## Product and Data Contracts
 
 1. [PRD](docs/01-prd.md)
-2. [系统架构](docs/02-system-architecture.md)
-3. [数据源清单](docs/03-data-sources.md)
-4. [数据字典](docs/04-data-dictionary.md)
-5. [指标口径表](docs/05-metric-definitions.md)
-6. [数据库 ER 模型](docs/06-er-model.md)
-7. [API 与 MCP 适配器设计](docs/07-adapters-and-apis.md)
-8. [权限与安全方案](docs/08-security-and-rbac.md)
-9. [MVP 验收标准](docs/09-mvp-acceptance.md)
-10. [模拟数据规范](docs/10-synthetic-data.md)
-11. [AI 编排与动态首页](docs/11-ai-orchestration.md)
-
-## 已确认决策
-
-| 决策 | 已确认值 |
-|---|---|
-| 产品形态 | 工作流型运营系统，不是静态 Dashboard |
-| MVP 架构 | Next.js + FastAPI 模块化单体 + PostgreSQL + S3 兼容对象存储 + Prefect |
-| 时间基准 | 业务日以 `America/Los_Angeles` 为默认展示日，UTC 持久化，来源时区原样留存 |
-| 数据分层 | 原始层只追加；标准层和指标层可重算；全链路保存来源与口径 |
-| 归因 | 不跨归因窗口直接相加；广告、零售、第三方估算分别展示 |
-| AI 权限 | 只读分析工具 + 创建审批草案；MVP 无写 Amazon 工具 |
-| API 状态 | 缺少密钥时使用明确标记的模拟适配器，不阻塞产品开发 |
-| 广告报表 | 适配 Amazon Ads 统一报表迁移，旧/新口径不混算 |
-| 广告范围 | M0/MVP 优先 Sponsored Products |
-| 阶段机制 | 每日生成 recommended stage；effective stage 仅由用户确认、修改或锁定 |
-| 首页目标 | 随 LAUNCH/SCALE/HARVEST/RECOVERY 动态排序，不设全阶段唯一利润目标 |
+2. [System architecture](docs/02-system-architecture.md)
+3. [Data sources](docs/03-data-sources.md)
+4. [Data dictionary](docs/04-data-dictionary.md)
+5. [Metric definitions](docs/05-metric-definitions.md)
+6. [Database ER model](docs/06-er-model.md)
+7. [API and MCP adapters](docs/07-adapters-and-apis.md)
+8. [Security and RBAC](docs/08-security-and-rbac.md)
+9. [MVP acceptance](docs/09-mvp-acceptance.md)
+10. [Synthetic data](docs/10-synthetic-data.md)
+11. [AI orchestration design](docs/11-ai-orchestration.md)
+12. [M1 implemented runtime](docs/12-m1-runtime.md)

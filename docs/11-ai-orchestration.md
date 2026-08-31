@@ -1,7 +1,7 @@
 # AI 编排与动态工作空间设计
 
-- 文档版本：`0.1`
-- 状态：`待确认`
+- 文档版本：`0.2`
+- 状态：`设计基线；Store Operations M1 纵切片已实现，其余能力仍为设计`
 - 范围：Jarvis Supervisor、专业 Agent、工具层、主动分析、HomeComposition、长期记忆与安全边界
 - MVP 数据状态：合成数据；所有输出必须显示 `synthetic=true`
 
@@ -321,4 +321,4 @@ MVP 审批状态：
 5. 接入其余专业 Agent 与页面内“问 AI”。
 6. 实现主动触发、失效传播、可观测性、成本预算和安全测试。
 
-本文件定义设计契约，不代表上述能力已经开发或连接真实 API。
+本文件仍是总体设计契约。已实现边界以 [M1 Jarvis Runtime Status](12-m1-runtime.md) 为准；当前没有连接任何真实 Amazon API。
