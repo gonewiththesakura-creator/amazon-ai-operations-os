@@ -7,12 +7,12 @@
   ],
   "scripts": {
     "dev": "npm run dev:web",
-    "dev:web": "npm run dev --workspace @amazon-ai-os/web",
-    "dev:api": "python -m uvicorn --app-dir apps/api/src amazon_ai_api.main:app --reload --host 127.0.0.1 --port 8000",
-    "build": "npm run build --workspace @amazon-ai-os/web",
-    "test": "npm run test --workspace @amazon-ai-os/web",
-    "test:api": "python -m pytest apps/api/tests",
-    "test:infra": "python -m unittest discover -s infra/tests -v",
+    "dev:web": "npm run dev --prefix apps/web",
+    "dev:api": "uv run --project apps/api uvicorn --app-dir apps/api/src amazon_ai_api.main:app --reload --host 127.0.0.1 --port 8000",
+    "build": "npm run build --prefix apps/web",
+    "test": "npm run test --prefix apps/web",
+    "test:api": "uv run --project apps/api pytest apps/api/tests",
+    "test:infra": "uv run --project apps/api python -m unittest discover -s infra/tests -v",
     "test:all": "npm run test && npm run test:api && npm run test:infra",
     "seed:synthetic": "uv run --project apps/api python scripts/seed_synthetic.py --output-dir synthetic-output --load-postgres"
   },

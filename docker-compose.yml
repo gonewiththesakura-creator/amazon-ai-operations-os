@@ -5,6 +5,10 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:${API_PORT:-8000}
+        NEXT_PUBLIC_DATA_MODE: SYNTHETIC
+        NEXT_PUBLIC_DEMO_TENANT_ID: 00000000-0000-0000-0000-000000000001
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:${API_PORT:-8000}
       NEXT_PUBLIC_DATA_MODE: SYNTHETIC
