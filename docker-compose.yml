@@ -8,6 +8,7 @@ services:
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:${API_PORT:-8000}
       NEXT_PUBLIC_DATA_MODE: SYNTHETIC
+      NEXT_PUBLIC_DEMO_TENANT_ID: 00000000-0000-0000-0000-000000000001
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:
@@ -21,19 +22,25 @@ services:
     restart: unless-stopped
 
   api:
+    image: amazon-ai-api:local
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/api/Dockerfile
     environment:
       APP_DATA_MODE: SYNTHETIC
       BUSINESS_TIMEZONE: America/Los_Angeles
       DATABASE_URL: postgresql://${POSTGRES_USER:-amazon_ai_admin}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-amazon_ai_ops}
       S3_ENDPOINT_URL: http://object-storage:9000
+      OPENAI_ENABLED: ${OPENAI_ENABLED:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.2}
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:
       postgres:
         condition: service_healthy
+      seed:
+        condition: service_completed_successfully
       object-storage:
         condition: service_started
     healthcheck:
@@ -42,6 +49,19 @@ services:
       timeout: 5s
       retries: 20
     restart: unless-stopped
+
+  seed:
+    image: amazon-ai-api:local
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: ["python", "scripts/seed_synthetic.py", "--load-postgres"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-amazon_ai_admin}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-amazon_ai_ops}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
   postgres:
     image: postgres:16-alpine

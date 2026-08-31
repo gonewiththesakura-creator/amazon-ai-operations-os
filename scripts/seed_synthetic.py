@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import sys
 import uuid
 from contextlib import ExitStack
@@ -19,6 +20,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Mapping
+from zoneinfo import ZoneInfo
 
 
 GENERATOR_VERSION = "1.0.0"
@@ -26,7 +28,7 @@ DEFAULT_SEED = 20260831
 LOGICAL_TODAY = date(2026, 8, 31)
 TENANT_ID = "00000000-0000-0000-0000-000000000001"
 ACCOUNT_ID = "00000000-0000-0000-0000-000000000101"
-MARKETPLACE = "US"
+MARKETPLACE = "ATVPDKIKX0DER"
 BUSINESS_TIMEZONE = "America/Los_Angeles"
 CURRENCY = "USD"
 SCENARIO_ID = "us_demo_v1"
@@ -36,6 +38,7 @@ EXPECTED_COUNTS = {
     "products": 20,
     "product_stage_history": 20,
     "sales_traffic_daily": 20 * 365,
+    "sp_ads_daily": 365,
     "market_niches": 30,
     "product_opportunities": 30,
     "market_niche_snapshots": 3_000,
@@ -101,8 +104,16 @@ def bounded_value(low: float, high: float, *parts: object) -> float:
     return low + (high - low) * stable_fraction(*parts)
 
 
+def business_day_bounds(day: date) -> tuple[datetime, datetime]:
+    business_zone = ZoneInfo(BUSINESS_TIMEZONE)
+    start_local = datetime(day.year, day.month, day.day, tzinfo=business_zone)
+    end_local = start_local + timedelta(days=1) - timedelta(microseconds=1)
+    return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
+
+
 def iso_midnight(day: date) -> str:
-    return datetime(day.year, day.month, day.day, tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+    start, _ = business_day_bounds(day)
+    return start.isoformat().replace("+00:00", "Z")
 
 
 def provenance(
@@ -117,19 +128,25 @@ def provenance(
     confidence: float,
     source_suffix: str,
     limitations: list[str] | None = None,
+    attribution_window: str = "NOT_APPLICABLE",
 ) -> dict[str, Any]:
     end = period_end or period_start
+    period_start_utc, _ = business_day_bounds(period_start)
+    _, period_end_utc = business_day_bounds(end)
     return {
         "source": f"synthetic:{source_suffix}",
         "source_kind": "SYNTHETIC",
         "semantic_source_kind": semantic_source_kind,
         "collected_at": "2026-08-31T12:00:00Z",
-        "data_period": {"start": iso_midnight(period_start), "end": iso_midnight(end)},
+        "data_period": {
+            "start": period_start_utc.isoformat().replace("+00:00", "Z"),
+            "end": period_end_utc.isoformat().replace("+00:00", "Z"),
+        },
         "marketplace": MARKETPLACE,
         "timezone": BUSINESS_TIMEZONE,
         "currency": CURRENCY,
         "grain": grain,
-        "attribution_window": "NOT_APPLICABLE",
+        "attribution_window": attribution_window,
         "is_estimated": is_estimated,
         "confidence": round(confidence, 4),
         "limitations": limitations or [],
@@ -223,6 +240,9 @@ def sales_records() -> Iterator[dict[str, Any]]:
             sessions = max(0, int(round(base_sessions * weekly * trend * noise)))
             cvr_noise = bounded_value(0.88, 1.12, "cvr", product_index, day_offset)
             orders = max(0, int(round(sessions * base_cvr * cvr_noise)))
+            if day_offset == 364:
+                sessions = int(round(sessions * 0.88))
+                orders = int(round(orders * 0.52))
             if product_index == 20 and day_offset >= 360:
                 sessions, orders = 0, 0
             units = orders + (1 if orders > 3 and stable_fraction("multi", product_index, day_offset) > 0.82 else 0)
@@ -339,7 +359,47 @@ def market_niche_snapshot_records() -> Iterator[dict[str, Any]]:
             is_estimated=True,
             confidence=bounded_value(0.52, 0.84, "market-confidence", opportunity_index, snapshot_index),
             source_suffix="seller_sprite",
-            limitations=["Third-party estimate semantics", "Not Amazon first-party sales"],
+                limitations=["Third-party estimate semantics", "Not Amazon first-party sales"],
+        )
+
+
+def sp_ads_daily_records() -> Iterator[dict[str, Any]]:
+    start = LOGICAL_TODAY - timedelta(days=364)
+    for day_offset in range(365):
+        business_day = start + timedelta(days=day_offset)
+        impressions = int(bounded_value(18_000, 31_000, "ads-impressions", day_offset))
+        clicks = int(impressions * bounded_value(0.0068, 0.0115, "ads-ctr", day_offset))
+        cpc = bounded_value(0.78, 1.34, "ads-cpc", day_offset)
+        spend = round(clicks * cpc, 2)
+        attributed_orders = max(1, int(clicks * bounded_value(0.075, 0.13, "ads-cvr", day_offset)))
+        average_order_value = bounded_value(31, 46, "ads-aov", day_offset)
+        attributed_sales = round(attributed_orders * average_order_value, 2)
+        if day_offset == 364:
+            attributed_orders = max(1, int(attributed_orders * 0.48))
+            attributed_sales = round(attributed_orders * average_order_value, 2)
+        yield with_provenance(
+            {
+                "sp_advertising_daily_id": stable_uuid("sp-ads-daily", business_day),
+                "tenant_id": TENANT_ID,
+                "account_id": ACCOUNT_ID,
+                "business_date": business_day.isoformat(),
+                "impressions": impressions,
+                "clicks": clicks,
+                "spend": spend,
+                "attributed_orders": attributed_orders,
+                "attributed_sales": attributed_sales,
+                "maturity": "MATURED" if business_day < LOGICAL_TODAY else "PROVISIONAL",
+            },
+            "sp_ads_daily",
+            business_day.isoformat(),
+            semantic_source_kind="FIRST_PARTY",
+            grain="STORE_AD_DAY",
+            period_start=business_day,
+            is_estimated=False,
+            confidence=1.0,
+            source_suffix="amazon_ads_api",
+            attribution_window="14_DAY_CLICK",
+            limitations=["Current business date remains provisional within the 14-day click attribution window"],
         )
 
 
@@ -581,6 +641,7 @@ DATASETS: tuple[tuple[str, Any], ...] = (
     ("products", product_records),
     ("product_stage_history", stage_records),
     ("sales_traffic_daily", sales_records),
+    ("sp_ads_daily", sp_ads_daily_records),
     ("market_niches", market_niche_records),
     ("product_opportunities", product_opportunity_records),
     ("market_niche_snapshots", market_niche_snapshot_records),
@@ -614,6 +675,151 @@ def validate_record(dataset: str, record: Mapping[str, Any]) -> None:
         "PUBLIC_OBSERVATION",
     }:
         raise ValueError(f"{dataset} estimated record has incompatible semantic source")
+
+
+def _provenance_id(record: Mapping[str, Any]) -> str:
+    return str(uuid.uuid5(NAMESPACE, f"db-provenance:{record['raw_record_reference']}"))
+
+
+def _provenance_params(record: Mapping[str, Any]) -> tuple[Any, ...]:
+    return (
+        _provenance_id(record),
+        record["tenant_id"],
+        record["source"],
+        record["source_kind"],
+        record["semantic_source_kind"],
+        record["collected_at"],
+        record["data_period"]["start"],
+        record["data_period"]["end"],
+        record["marketplace"],
+        record["timezone"],
+        record["currency"],
+        record["grain"],
+        record["attribution_window"],
+        record["is_estimated"],
+        record["confidence"],
+        json.dumps(record["limitations"]),
+        record["raw_record_reference"],
+        record["synthetic"],
+    )
+
+
+def load_postgres(database_url: str) -> dict[str, int]:
+    """Idempotently load the M1 operational slice into the migrated PostgreSQL schema."""
+    try:
+        import psycopg
+    except ImportError as exc:  # pragma: no cover - exercised by CLI environment checks
+        raise RuntimeError("PostgreSQL loading requires the apps/api dependencies") from exc
+
+    provenance_sql = """
+        INSERT INTO connectors.data_provenance (
+          provenance_id, tenant_id, source, source_kind, semantic_source_kind,
+          collected_at, data_period_start, data_period_end, marketplace, timezone,
+          currency, grain, attribution_window, is_estimated, confidence, limitations,
+          raw_record_reference, synthetic
+        ) VALUES (
+          %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s
+        ) ON CONFLICT (provenance_id) DO NOTHING
+    """
+    counts: dict[str, int] = {}
+    with psycopg.connect(database_url) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO iam.tenants (
+                  tenant_id, tenant_key, name, data_mode, default_marketplace,
+                  business_timezone, default_currency
+                ) VALUES (%s, %s, %s, 'SYNTHETIC', %s, %s, %s)
+                ON CONFLICT (tenant_id) DO UPDATE SET
+                  data_mode = EXCLUDED.data_mode,
+                  default_marketplace = EXCLUDED.default_marketplace,
+                  business_timezone = EXCLUDED.business_timezone,
+                  default_currency = EXCLUDED.default_currency
+                """,
+                (TENANT_ID, "demo", "Atlas Home Goods", MARKETPLACE, BUSINESS_TIMEZONE, CURRENCY),
+            )
+            cursor.execute(
+                """
+                INSERT INTO connectors.marketplace_accounts (
+                  account_id, tenant_id, account_key, marketplace, business_timezone,
+                  default_currency, status
+                ) VALUES (%s, %s, %s, %s, %s, %s, 'SIMULATED')
+                ON CONFLICT (account_id) DO NOTHING
+                """,
+                (ACCOUNT_ID, TENANT_ID, "synthetic-us", MARKETPLACE, BUSINESS_TIMEZONE, CURRENCY),
+            )
+
+            products = list(product_records())
+            cursor.executemany(provenance_sql, [_provenance_params(record) for record in products])
+            cursor.executemany(
+                """
+                INSERT INTO catalog.products (
+                  product_id, tenant_id, account_id, marketplace, asin, title, brand,
+                  category, lifecycle_status, provenance_id, synthetic
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (product_id) DO NOTHING
+                """,
+                [
+                    (
+                        record["product_id"], record["tenant_id"], record["account_id"],
+                        record["marketplace"], record["asin"], record["title"], record["brand"],
+                        record["category"], record["lifecycle_status"], _provenance_id(record),
+                        record["synthetic"],
+                    )
+                    for record in products
+                ],
+            )
+            counts["products"] = len(products)
+
+            sales = list(sales_records())
+            cursor.executemany(provenance_sql, [_provenance_params(record) for record in sales])
+            cursor.executemany(
+                """
+                INSERT INTO retail.fact_sales_traffic_daily (
+                  sales_traffic_id, tenant_id, account_id, product_id, business_date,
+                  ordered_product_sales, units_ordered, orders, sessions, page_views,
+                  buy_box_percentage, currency, maturity, provenance_id, synthetic
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (sales_traffic_id) DO NOTHING
+                """,
+                [
+                    (
+                        record["sales_traffic_id"], record["tenant_id"], record["account_id"],
+                        record["product_id"], record["business_date"], record["ordered_product_sales"],
+                        record["units_ordered"], record["orders"], record["sessions"],
+                        record["page_views"], record["buy_box_percentage"], record["currency"],
+                        record["maturity"], _provenance_id(record), record["synthetic"],
+                    )
+                    for record in sales
+                ],
+            )
+            counts["sales_traffic_daily"] = len(sales)
+
+            ads = list(sp_ads_daily_records())
+            cursor.executemany(provenance_sql, [_provenance_params(record) for record in ads])
+            cursor.executemany(
+                """
+                INSERT INTO ads.fact_sp_advertising_daily (
+                  sp_advertising_daily_id, tenant_id, account_id, business_date,
+                  impressions, clicks, spend, attributed_orders, attributed_sales,
+                  currency, maturity, attribution_window, provenance_id, synthetic
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (sp_advertising_daily_id) DO NOTHING
+                """,
+                [
+                    (
+                        record["sp_advertising_daily_id"], record["tenant_id"], record["account_id"],
+                        record["business_date"], record["impressions"], record["clicks"],
+                        record["spend"], record["attributed_orders"], record["attributed_sales"],
+                        record["currency"], record["maturity"], record["attribution_window"],
+                        _provenance_id(record), record["synthetic"],
+                    )
+                    for record in ads
+                ],
+            )
+            counts["sp_ads_daily"] = len(ads)
+        connection.commit()
+    return counts
 
 
 @dataclass
@@ -684,15 +890,24 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
     output_group.add_argument("--output-dir", type=Path, help="Write NDJSON datasets and a scenario manifest")
     output_group.add_argument("--validate-only", action="store_true", help="Generate, validate, and checksum without writing files")
     parser.add_argument("--summary-json", action="store_true", help="Print the summary as compact JSON")
+    parser.add_argument("--load-postgres", action="store_true", help="Load the operational M1 slice into PostgreSQL")
+    parser.add_argument("--database-url", help="PostgreSQL URL; defaults to DATABASE_URL")
     return parser.parse_args(list(argv))
 
 
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
-    if not args.output_dir and not args.validate_only:
-        print("Specify --validate-only or --output-dir PATH", file=sys.stderr)
+    if not args.output_dir and not args.validate_only and not args.load_postgres:
+        print("Specify --validate-only, --output-dir PATH, or --load-postgres", file=sys.stderr)
         return 2
     summary = generate(args.output_dir)
+    load_counts: dict[str, int] | None = None
+    if args.load_postgres:
+        database_url = args.database_url or os.environ.get("DATABASE_URL")
+        if not database_url:
+            print("DATABASE_URL is required with --load-postgres", file=sys.stderr)
+            return 2
+        load_counts = load_postgres(database_url)
     if args.summary_json:
         print(json.dumps(summary.as_dict(), sort_keys=True))
     else:
@@ -702,6 +917,10 @@ def main(argv: Iterable[str] | None = None) -> int:
         print(f"  checksum: {summary.checksum}")
         if summary.output_dir:
             print(f"  output: {summary.output_dir}")
+        if load_counts is not None:
+            print("  postgres:")
+            for dataset, count in load_counts.items():
+                print(f"    {dataset}: {count:,}")
     return 0
 
 

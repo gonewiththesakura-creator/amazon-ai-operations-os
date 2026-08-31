@@ -30,7 +30,7 @@ class SyntheticSeedTests(unittest.TestCase):
     def test_required_dataset_sizes(self) -> None:
         for dataset, expected in seed_synthetic.EXPECTED_COUNTS.items():
             self.assertEqual(self.first.counts[dataset], expected, dataset)
-        self.assertEqual(sum(self.first.counts.values()), 41_060)
+        self.assertEqual(sum(self.first.counts.values()), 41_425)
 
     def test_manifest_declares_the_exact_36_domain_tables(self) -> None:
         self.assertEqual(len(seed_synthetic.EXACT_DOMAIN_TABLES), 36)
@@ -83,8 +83,19 @@ class MigrationContractTests(unittest.TestCase):
                 "0002_selection_procurement_finance.sql",
                 "0003_ai_workflow_policy.sql",
                 "0004_exact_selection_sourcing_logistics.sql",
+                "0005_m1_jarvis_runtime.sql",
             ],
         )
+
+    def test_sponsored_products_daily_table_is_tenant_isolated(self) -> None:
+        self.assertIn("CREATE TABLE ads.fact_sp_advertising_daily", self.sql)
+        self.assertIn("CREATE POLICY tenant_isolation ON ads.fact_sp_advertising_daily", self.sql)
+        self.assertIn("attribution_window text NOT NULL CHECK (attribution_window = '14_DAY_CLICK')", self.sql)
+
+    def test_synthetic_business_day_uses_la_boundaries(self) -> None:
+        start, end = seed_synthetic.business_day_bounds(seed_synthetic.LOGICAL_TODAY)
+        self.assertEqual(start.isoformat(), "2026-08-31T07:00:00+00:00")
+        self.assertEqual(end.isoformat(), "2026-09-01T06:59:59.999999+00:00")
 
     def test_exact_36_selection_and_sourcing_physical_tables_exist(self) -> None:
         required = {

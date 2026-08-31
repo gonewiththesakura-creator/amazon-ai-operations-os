@@ -5,11 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "amazon-ai-api"
 version = "0.1.0"
-description = "M0 API contracts for the Amazon AI operating system"
+description = "Jarvis runtime API for the Amazon AI operating system"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.116,<1.0",
   "pydantic>=2.10,<3.0",
+  "psycopg[binary]>=3.2,<4.0",
   "uvicorn>=0.35,<1.0",
 ]
 
@@ -27,4 +28,3 @@ packages = ["src/amazon_ai_api"]
 addopts = "-q"
 pythonpath = ["src"]
 testpaths = ["tests"]
-

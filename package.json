@@ -14,7 +14,7 @@
     "test:api": "python -m pytest apps/api/tests",
     "test:infra": "python -m unittest discover -s infra/tests -v",
     "test:all": "npm run test && npm run test:api && npm run test:infra",
-    "seed:synthetic": "python scripts/seed_synthetic.py --output-dir synthetic-output"
+    "seed:synthetic": "uv run --project apps/api python scripts/seed_synthetic.py --output-dir synthetic-output --load-postgres"
   },
   "engines": {
     "node": ">=22"
