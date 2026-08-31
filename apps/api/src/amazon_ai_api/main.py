@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from amazon_ai_api import __version__
 from amazon_ai_api.adapters.synthetic import SyntheticAdapter
@@ -34,6 +35,13 @@ def create_app() -> FastAPI:
             "are registered or deployed."
         ),
         lifespan=lifespan,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "X-Tenant-Id"],
     )
     app.include_router(health.router)
     app.include_router(home.router)
