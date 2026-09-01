@@ -13,6 +13,7 @@ type WorkspaceNavigationProps = {
   mobileOpen: boolean;
   userQuestions: string[];
   onClose: () => void;
+  onOpenConversation: () => void;
   onHome: () => void;
   onOpenHelp: () => void;
   onOpenSettings: () => void;
@@ -22,6 +23,7 @@ export function WorkspaceNavigation({
   mobileOpen,
   userQuestions,
   onClose,
+  onOpenConversation,
   onHome,
   onOpenHelp,
   onOpenSettings,
@@ -55,7 +57,7 @@ export function WorkspaceNavigation({
 
       <section className="session-memory" aria-labelledby="session-memory-title">
         <div className="session-memory-head">
-          <span id="session-memory-title"><MessageCircle size={15} /> 会话</span>
+          <button type="button" id="session-memory-title" onClick={onOpenConversation}><MessageCircle size={15} /> 会话</button>
           <span>{userQuestions.length}</span>
         </div>
         {userQuestions.length === 0 ? (

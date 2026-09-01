@@ -24,7 +24,7 @@ const chatResponse: ChatResponse = {
   synthetic: true,
 };
 
-describe("M1.6 interaction contract", () => {
+describe("M1.7 interaction contract", () => {
   beforeEach(() => {
     window.localStorage.clear();
     getHome.mockResolvedValue(homeComposition());
@@ -89,7 +89,7 @@ describe("M1.6 interaction contract", () => {
     render(<AppShell />);
     await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
-    await user.click(screen.getAllByRole("button", { name: /查看依据/ })[0]);
+    await user.click(await screen.findByRole("button", { name: "查看依据：订单漏斗" }));
     expect(screen.getByRole("tab", { name: /依据/ })).toHaveAttribute("aria-selected", "true");
     expect(within(screen.getByLabelText("上下文与证据检查器")).getByRole("heading", { name: "结论" })).toBeInTheDocument();
 
@@ -97,7 +97,7 @@ describe("M1.6 interaction contract", () => {
     expect(screen.getByText("仅供审阅")).toBeInTheDocument();
     expect(screen.getByText("不会修改 Amazon")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "查看全部" }));
+    await user.click(screen.getByRole("tab", { name: /待审阅/ }));
     expect(screen.getByRole("tab", { name: /待审阅/ })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByLabelText("待审阅草案")).toHaveTextContent("当前不提供批准或 Amazon 执行控件");
   });
@@ -107,7 +107,7 @@ describe("M1.6 interaction contract", () => {
     render(<AppShell />);
     await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
-    await user.click(screen.getAllByRole("button", { name: /查看依据/ })[0]);
+    await user.click(await screen.findByRole("button", { name: "查看依据：订单漏斗" }));
     await user.click(screen.getByRole("button", { name: /复核 SP 搜索词与预算/ }));
     let inspector = screen.getByLabelText("上下文与证据检查器");
     expect(within(inspector).getByText("广告归因尚未成熟。")).toBeInTheDocument();
@@ -118,10 +118,10 @@ describe("M1.6 interaction contract", () => {
     expect(within(inspector).getByText("广告归因尚未成熟。")).toBeInTheDocument();
     expect(within(inspector).getByText("78%")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "查看建议" }));
+    await user.click(screen.getByRole("button", { name: /检查转化阻断/ }));
     inspector = screen.getByLabelText("上下文与证据检查器");
-    expect(within(inspector).getByText("CVR 降幅大于 Sessions 降幅。")).toBeInTheDocument();
-    expect(within(inspector).getByText("90%")).toBeInTheDocument();
+    expect(within(inspector).getByText("区分流量与转化变化。")).toBeInTheDocument();
+    expect(within(inspector).getByText("98%")).toBeInTheDocument();
   });
 
   it("closes the inspector with Escape, removes it from the tab order, and restores focus", async () => {
@@ -129,7 +129,7 @@ describe("M1.6 interaction contract", () => {
     render(<AppShell />);
     await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
-    const evidenceButton = screen.getAllByRole("button", { name: /查看依据/ })[0];
+    const evidenceButton = await screen.findByRole("button", { name: "查看依据：订单漏斗" });
     await user.click(evidenceButton);
     const inspector = screen.getByLabelText("上下文与证据检查器");
     expect(inspector).not.toHaveAttribute("inert");
@@ -144,7 +144,7 @@ describe("M1.6 interaction contract", () => {
     render(<AppShell />);
     await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
-    await user.click(screen.getByRole("button", { name: "今天为什么出单或没出单？" }));
+    await user.click(screen.getByRole("button", { name: "为什么广告成本上涨？" }));
     await waitFor(() => expect(sendChat).toHaveBeenCalledTimes(1));
 
     const input = screen.getByLabelText("向运营助手提问");
@@ -152,7 +152,8 @@ describe("M1.6 interaction contract", () => {
     await user.click(screen.getByRole("button", { name: "发送问题" }));
     await waitFor(() => expect(sendChat).toHaveBeenCalledTimes(2));
 
-    await user.click(screen.getByRole("button", { name: /我现在应该先改广告吗？直接追问/ }));
+    await user.click(screen.getByRole("button", { name: "会话" }));
+    await user.click(screen.getAllByRole("button", { name: "我现在应该先改广告吗？" })[0]);
     await waitFor(() => expect(sendChat).toHaveBeenCalledTimes(3));
   });
 

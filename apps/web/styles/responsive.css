@@ -75,17 +75,11 @@
 
   .jarvis-brief { order: 1; padding: 28px 0 12px; }
   .business-date { margin-bottom: 12px; font-size: 11px; }
-  .greeting { margin-bottom: 6px; font-size: 15px; }
   .jarvis-brief h1 { font-size: 26px; line-height: 1.42; }
   .judgment-reason { margin-top: 12px; font-size: 12px; line-height: 1.65; }
-  .brief-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 18px; }
-  .brief-facts > span { padding: 10px 10px 10px 0; }
-  .brief-facts > span + span { padding-left: 10px; }
-  .brief-facts > span:nth-child(3) { display: none; }
-  .brief-facts small { font-size: 11px; }
-  .brief-facts strong { font-size: 11px; }
+  .brief-metadata { margin-top: 10px; }
 
-  .priority-section { order: 2; padding: 24px 0 18px; }
+  .priority-section { order: 3; padding: 24px 0 18px; }
   .section-heading-row { align-items: start; margin-bottom: 10px; }
   .section-heading-row h2 { font-size: 18px; }
   .section-heading-row p { font-size: 11px; line-height: 1.5; }
@@ -96,16 +90,14 @@
   .priority-list strong { font-size: 12px; }
   .priority-list small { margin-top: 4px; font-size: 11px; }
 
-  .metric-strip { order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric-strip { order: 2; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metric-strip-item { padding: 14px 10px 14px 0; border-bottom: 1px solid var(--line); }
   .metric-strip-item:nth-child(odd) { padding-left: 0; border-left: 0; }
   .metric-strip-item:nth-child(even) { padding-left: 10px; border-left: 1px solid var(--line); }
   .metric-strip-item strong { font-size: 19px; }
 
-  .quick-prompts { order: 4; grid-template-columns: 1fr; gap: 8px; padding: 18px 0 24px; }
+  .quick-prompts { order: 5; grid-template-columns: 1fr; gap: 8px; padding: 18px 0 24px; }
   .quick-prompts > span { padding: 0; }
-  .conversation-stream { order: 5; }
-  .analysis-section { order: 6; padding-top: 18px; }
   .canvas-bottom-space { order: 7; }
 
   .composition-block { padding: 22px 0 16px; }

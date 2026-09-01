@@ -73,26 +73,26 @@ describe("AppShell runtime", () => {
   it("renders the localized executive composition in the default warm-light theme", async () => {
     render(<AppShell />);
 
-    expect(await screen.findByRole("heading", { name: "今日订单显著低于合格基线" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" })).toBeInTheDocument();
     const summary = screen.getByLabelText("今日经营摘要");
     expect(summary).toHaveTextContent("订单");
     expect(summary).toHaveTextContent("流量");
-    expect(summary).toHaveTextContent("转化率");
+    expect(summary).toHaveTextContent("CVR");
     expect(summary).toHaveTextContent("ACOS");
-    expect(screen.getByText("归因尚未成熟")).toBeInTheDocument();
+    expect(screen.getByText(/数据尚在归因/)).toBeInTheDocument();
     expect(screen.getByText("Demo data")).toBeInTheDocument();
     expect(screen.getAllByText(/模拟数据/).length).toBeGreaterThan(1);
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
-    expect(JSON.parse(window.localStorage.getItem("amazon-ai-os:workspace-preferences:v1.6") ?? "{}"))
+    expect(JSON.parse(window.localStorage.getItem("amazon-ai-os:workspace-preferences:v1.7") ?? "{}"))
       .toEqual(expect.objectContaining({ theme: "light" }));
   });
 
   it("submits chat and carries composition context into a follow-up", async () => {
     const user = userEvent.setup();
     render(<AppShell />);
-    await screen.findByRole("heading", { name: "今日订单显著低于合格基线" });
+    await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
-    await user.click(screen.getByRole("button", { name: "今天为什么出单或没出单？" }));
+    await user.click(screen.getByRole("button", { name: "为什么广告成本上涨？" }));
     expect(await screen.findByText("订单下降来自流量和转化同时走弱。")).toBeInTheDocument();
     expect(sendChat).toHaveBeenNthCalledWith(
       1,
@@ -109,8 +109,9 @@ describe("AppShell runtime", () => {
     sendChat.mockResolvedValueOnce(
       chatResponse("50000000-0000-4000-8000-000000000002", "广告归因仍为 PROVISIONAL。"),
     );
-    await user.click(screen.getAllByRole("button", { name: /我现在应该先改广告吗？/ })[0]);
-    await screen.findByText("广告归因仍为 PROVISIONAL。");
+    await user.click(screen.getByRole("button", { name: "会话" }));
+    await user.click(screen.getByRole("button", { name: "我现在应该先改广告吗？" }));
+    expect(await screen.findAllByText("广告归因仍为 PROVISIONAL。")).toHaveLength(2);
     expect(sendChat).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
@@ -123,7 +124,7 @@ describe("AppShell runtime", () => {
 
   it("submits a typed question from the persistent composer", async () => {
     render(<AppShell />);
-    await screen.findByRole("heading", { name: "今日订单显著低于合格基线" });
+    await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
     fireEvent.change(screen.getByLabelText("向运营助手提问"), {
       target: { value: "今天先做什么？" },

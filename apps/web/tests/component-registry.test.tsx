@@ -7,11 +7,12 @@ import { homeBlock } from "./fixtures/home";
 describe("ComponentRegistry", () => {
   afterEach(() => cleanup());
 
-  it("renders a registered dynamic block with localized provenance", () => {
+  it("renders a registered dynamic block while keeping provenance in Inspector", () => {
     renderRegistry(homeBlock());
 
     expect(screen.getByText("今日订单显著低于合格基线")).toBeInTheDocument();
-    expect(screen.getByText(/基于 Amazon SP 模拟数据/)).toBeInTheDocument();
+    expect(screen.queryByText(/基于 Amazon SP 模拟数据/)).not.toBeInTheDocument();
+    expect(screen.queryByText("展开来源与口径")).not.toBeInTheDocument();
     expect(screen.getByText("45")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "查看依据：今日订单显著低于合格基线" })).toBeEnabled();
   });
@@ -35,7 +36,6 @@ function renderRegistry(block: ReturnType<typeof homeBlock>) {
   return render(
     <ComponentRegistry
       block={block}
-      defaultEvidenceOpen={false}
       reducedMotion
       onOpenAction={vi.fn()}
       onOpenEvidence={vi.fn()}

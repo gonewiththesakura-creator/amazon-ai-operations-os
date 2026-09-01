@@ -83,5 +83,6 @@ html[data-theme="dark"] {
 
 .tone-positive { color: var(--moss-strong) !important; }
 .tone-critical,
+.tone-risk,
 .tone-negative { color: var(--risk) !important; }
 .tone-warning { color: var(--luxury) !important; }

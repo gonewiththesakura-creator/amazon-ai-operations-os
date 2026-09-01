@@ -78,6 +78,17 @@
 }
 
 .session-memory-head { display: flex; align-items: center; gap: 7px; color: var(--text-subtle); }
+.session-memory-head > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  color: var(--secondary);
+  font-size: 11px;
+}
+.session-memory-head > button:hover { color: var(--ink); }
 .session-memory-head h2 { margin: 0; font-size: 11px; font-weight: 650; }
 .session-memory ul { margin: 12px 0 0; padding: 0; list-style: none; }
 .session-memory li { padding: 6px 0; overflow: hidden; color: var(--secondary); font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }

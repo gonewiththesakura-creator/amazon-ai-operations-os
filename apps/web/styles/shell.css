@@ -187,19 +187,12 @@
   margin-left: auto;
 }
 
-.jarvis-brief { padding: 36px 0 18px; }
+.jarvis-brief { padding: 30px 0 14px; }
 
 .business-date {
   margin: 0 0 12px;
   color: var(--text-subtle);
   font-size: 11px;
-}
-
-.greeting {
-  margin: 0 0 10px;
-  color: var(--secondary);
-  font-family: var(--font-serif);
-  font-size: 18px;
 }
 
 .jarvis-brief h1 {
@@ -220,29 +213,7 @@
   line-height: 1.8;
 }
 
-.brief-facts {
-  display: grid;
-  grid-template-columns: 1fr 0.85fr 1.5fr;
-  gap: 0;
-  margin-top: 20px;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.brief-facts > span {
-  min-width: 0;
-  padding: 11px 18px 11px 0;
-}
-
-.brief-facts > span + span {
-  padding-left: 18px;
-  border-left: 1px solid var(--line);
-}
-
-.brief-facts small,
-.brief-facts strong { display: block; }
-.brief-facts small { margin-bottom: 5px; color: var(--text-subtle); font-size: 11px; }
-.brief-facts strong { overflow: hidden; color: var(--secondary); font-size: 12px; font-weight: 580; line-height: 1.55; text-overflow: ellipsis; }
+.brief-metadata { margin: 14px 0 0; color: var(--text-subtle); font-size: 11px; }
 
 .metric-strip {
   display: grid;
@@ -265,7 +236,7 @@
 .metric-strip-item small { display: block; color: var(--text-subtle); font-size: 11px; }
 .metric-strip-item strong { display: block; margin: 7px 0 4px; color: var(--ink); font-size: 25px; font-weight: 540; font-variant-numeric: tabular-nums; }
 
-.priority-section { padding: 28px 0 22px; }
+.priority-section { padding: 24px 0 18px; }
 
 .section-heading-row {
   display: flex;

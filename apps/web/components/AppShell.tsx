@@ -14,31 +14,24 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getHomeComposition, sendChatMessage } from "../lib/api";
-import type { ChatContext, ChatResponse } from "../types/chat";
+import type { ChatContext } from "../types/chat";
 import type { ActionSummary, HomeBlock, HomeComposition } from "../types/home";
-import { ComponentRegistry } from "./ComponentRegistry";
-import { HelpDrawer, SettingsDrawer, type WorkspacePreferences } from "./WorkspaceDrawers";
+import { buildHomeViewModel } from "../view-models/home";
+import type { OperatingDomainId } from "../view-models/operating-domains";
+import { OperatingDomains } from "./OperatingDomains";
+import { ConversationDrawer, HelpDrawer, SettingsDrawer, type ConversationMessage, type WorkspacePreferences } from "./WorkspaceDrawers";
 import { Inspector, type InspectorMode } from "./Inspector";
 import { WorkspaceNavigation } from "./WorkspaceNavigation";
-
-const quickQuestions = [
-  "今天为什么出单或没出单？",
-  "今天先处理哪三件事？",
-  "哪条广告浪费最严重？",
-  "目前是否真正盈利？",
-];
 
 const defaultPreferences: WorkspacePreferences = {
   density: "comfortable",
   displayTimezone: "America/Los_Angeles",
-  evidenceExpanded: false,
   reducedMotion: false,
   theme: "light",
 };
 
 type LoadState = "loading" | "success" | "empty" | "error";
-type Message = { id: string; role: "user" | "assistant"; content: string; response?: ChatResponse };
-type OpenDrawer = "settings" | "help" | null;
+type OpenDrawer = "settings" | "help" | "conversation" | null;
 
 export default function AppShell() {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -55,7 +48,8 @@ export default function AppShell() {
   const [composition, setComposition] = useState<HomeComposition | null>(null);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [refreshing, setRefreshing] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [expandedDomainIds, setExpandedDomainIds] = useState<OperatingDomainId[]>([]);
   const [chatting, setChatting] = useState(false);
   const [preferences, setPreferences] = useState<WorkspacePreferences>(defaultPreferences);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
@@ -66,7 +60,7 @@ export default function AppShell() {
     try {
       const result = await getHomeComposition(signal);
       setComposition(result);
-      setLoadState(result.blocks.length ? "success" : "empty");
+      setLoadState("success");
       setSelectedBlockId((current) => current ?? result.blocks[0]?.block_id ?? null);
       setSelectedActionId((current) => current ?? result.top_actions[0]?.action_id ?? null);
     } catch (error) {
@@ -85,10 +79,10 @@ export default function AppShell() {
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem("amazon-ai-os:workspace-preferences:v1.6");
+      const stored = window.localStorage.getItem("amazon-ai-os:workspace-preferences:v1.7");
       if (stored) setPreferences({ ...defaultPreferences, ...JSON.parse(stored) as Partial<WorkspacePreferences> });
     } catch {
-      window.localStorage.removeItem("amazon-ai-os:workspace-preferences:v1.6");
+      window.localStorage.removeItem("amazon-ai-os:workspace-preferences:v1.7");
     } finally {
       setPreferencesLoaded(true);
     }
@@ -97,7 +91,7 @@ export default function AppShell() {
 
   useEffect(() => {
     if (!preferencesLoaded) return;
-    window.localStorage.setItem("amazon-ai-os:workspace-preferences:v1.6", JSON.stringify(preferences));
+    window.localStorage.setItem("amazon-ai-os:workspace-preferences:v1.7", JSON.stringify(preferences));
     document.documentElement.dataset.density = preferences.density;
     document.documentElement.dataset.motion = preferences.reducedMotion ? "reduced" : "full";
     document.documentElement.dataset.theme = preferences.theme;
@@ -140,12 +134,18 @@ export default function AppShell() {
     [composition, selectedActionId],
   );
   const userQuestions = messages.filter((message) => message.role === "user").map((message) => message.content);
-  const summaryMetrics = useMemo(() => buildSummaryMetrics(composition), [composition]);
+  const homeView = useMemo(() => composition ? buildHomeViewModel(composition) : null, [composition]);
+  const latestAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant") ?? null;
+
+  useEffect(() => {
+    if (!homeView) return;
+    setExpandedDomainIds(homeView.domains.filter((domain) => domain.defaultExpanded).map((domain) => domain.id));
+  }, [composition?.composition_id, composition?.generated_at, homeView]);
 
   async function submitQuestion(question: string) {
     const normalized = question.trim();
     if (!normalized || !composition || !context || chatting) return;
-    const userMessage: Message = { id: crypto.randomUUID(), role: "user", content: normalized };
+    const userMessage: ConversationMessage = { id: crypto.randomUUID(), role: "user", content: normalized };
     setMessages((current) => [...current, userMessage]);
     setInput("");
     setChatting(true);
@@ -220,6 +220,14 @@ export default function AppShell() {
     if (canvas && typeof canvas.scrollTo === "function") canvas.scrollTo({ top: 0, behavior: preferences.reducedMotion ? "auto" : "smooth" });
   }
 
+  function toggleDomain(domainId: OperatingDomainId) {
+    setExpandedDomainIds((current) => {
+      if (current.includes(domainId)) return current.filter((id) => id !== domainId);
+      if (current.length < 2) return [...current, domainId];
+      return [current[1], domainId];
+    });
+  }
+
   const formattedGeneratedAt = composition
     ? new Intl.DateTimeFormat("zh-CN", {
         month: "short",
@@ -258,6 +266,7 @@ export default function AppShell() {
           userQuestions={userQuestions}
           onClose={() => setMobileNav(false)}
           onHome={showHome}
+          onOpenConversation={() => { setMobileNav(false); setOpenDrawer("conversation"); }}
           onOpenSettings={() => setOpenDrawer("settings")}
           onOpenHelp={() => setOpenDrawer("help")}
         />
@@ -290,27 +299,22 @@ export default function AppShell() {
             {loadState === "empty" && (
               <RuntimeState title="当前没有可展示内容" body="API 返回了有效 HomeComposition，但注册组件列表为空。" action={() => void loadHome()} />
             )}
-            {composition && loadState === "success" && (
+            {composition && homeView && loadState === "success" && (
               <>
                 <section className="jarvis-brief" aria-labelledby="daily-judgment">
-                  <p className="business-date">{formatBusinessDate(composition.business_date)} · 美国站</p>
-                  <p className="greeting">早上好。</p>
-                  <h1 id="daily-judgment" key={composition.composition_id}>{humanizeNarrative(composition.top_issue.summary)}</h1>
-                  <p className="judgment-reason">{humanizeNarrative(composition.overall_judgment)}</p>
-                  <div className="brief-facts">
-                    <span><small>经营目标</small><strong>{objectiveLabel(composition.objective_profile)}</strong></span>
-                    <span><small>数据状态</small><strong>{dataStatusLabel(composition.data_status.status)}</strong></span>
-                    <span><small>Jarvis 已检查今日经营数据</small><strong>{humanizeNarrative(composition.best_signal.summary)}</strong></span>
-                  </div>
+                  <p className="business-date">{formatBusinessDate(homeView.businessDate)} · {homeView.marketplaceLabel}</p>
+                  <h1 id="daily-judgment" key={composition.composition_id}>{humanizeNarrative(homeView.judgment)}</h1>
+                  <p className="judgment-reason">{humanizeNarrative(homeView.explanation)}</p>
+                  <p className="brief-metadata">{homeView.metadata}</p>
                 </section>
 
-                {summaryMetrics.length > 0 && (
+                {homeView.metrics.length > 0 && (
                   <section className="metric-strip" aria-label="今日经营摘要">
-                    {summaryMetrics.map((metric) => (
+                    {homeView.metrics.map((metric) => (
                       <div className="metric-strip-item" key={metric.label}>
                         <span>{metric.label}</span>
                         <strong>{metric.value}</strong>
-                        <small className={metric.tone ? `tone-${metric.tone}` : ""}>{metric.note}</small>
+                        {metric.note && <small className={metric.tone ? `tone-${metric.tone}` : ""}>{metric.note}</small>}
                       </div>
                     ))}
                   </section>
@@ -318,11 +322,11 @@ export default function AppShell() {
 
                 <section className="priority-section" aria-labelledby="priority-heading">
                   <div className="section-heading-row">
-                    <div><h2 id="priority-heading">现在先做什么</h2><p>Jarvis 已按经营影响和证据确定性排序。</p></div>
-                    <button type="button" className="section-link" onClick={() => { rememberInspectorOpener(); setInspectorMode("approval"); setInspectorOpen(true); }}>查看全部</button>
+                    <div><h2 id="priority-heading">今天先做什么</h2><p>Jarvis 已按经营影响和证据确定性排序。</p></div>
+                    {homeView.hasMoreActions && <button type="button" className="section-link" onClick={() => { rememberInspectorOpener(); setInspectorMode("approval"); setInspectorOpen(true); }}>查看全部建议 <ArrowUpRight size={14} /></button>}
                   </div>
                   <ol className="priority-list">
-                    {composition.top_actions.map((action) => (
+                    {homeView.actions.map((action) => (
                       <li key={action.action_id}>
                         <button type="button" onClick={() => openAction(action)}>
                           <span className="priority-rank">{String(action.priority).padStart(2, "0")}</span>
@@ -334,63 +338,28 @@ export default function AppShell() {
                   </ol>
                 </section>
 
+                <OperatingDomains
+                  domains={homeView.domains}
+                  expandedIds={expandedDomainIds}
+                  reducedMotion={preferences.reducedMotion}
+                  onToggle={toggleDomain}
+                  onOpenEvidence={openEvidence}
+                  onOpenAction={openActionForBlock}
+                  onSubmitFollowUp={(question) => void submitQuestion(question)}
+                />
+
                 <section className="quick-prompts" aria-label="快捷问题">
                   <span>继续问 Jarvis</span>
-                  <div>{quickQuestions.map((question) => <button type="button" key={question} onClick={() => void submitQuestion(question)}>{question}</button>)}</div>
+                  <div>{homeView.quickQuestions.map((question) => <button type="button" key={question} onClick={() => void submitQuestion(question)}>{question}</button>)}</div>
                 </section>
 
-                {messages.length > 0 && (
-                  <section className="conversation-stream" aria-label="当前对话" aria-live="polite">
-                    {messages.map((message) => (
-                      <article className={`chat-message chat-${message.role}`} key={message.id}>
-                        <span className="message-role">{message.role === "assistant" ? "JARVIS" : "YOU"}</span>
-                        <div className="message-body">
-                          <p>{message.content}</p>
-                          {message.response && (
-                            <>
-                              <div className="message-proof"><span>{message.response.findings.length} 个发现</span><span>{message.response.evidence_refs.length} 条证据</span><span>SYNTHETIC</span></div>
-                              <details className="finding-disclosure">
-                                <summary>检查发现与证据</summary>
-                                {message.response.findings.map((finding) => (
-                                  <div className="chat-finding" key={finding.finding_id}>
-                                    <div><strong>{finding.claim}</strong><span>{finding.causal_status} · {Math.round(finding.confidence * 100)}%</span></div>
-                                    <p>{finding.recommended_next_step}</p>
-                                    <small>{finding.data_period.start.slice(0, 10)} → {finding.data_period.end.slice(0, 10)} · {finding.source.join(", ")}</small>
-                                  </div>
-                                ))}
-                              </details>
-                              {message.response.suggested_followups.length > 0 && (
-                                <div className="suggested-followups">
-                                  {message.response.suggested_followups.map((question) => <button type="button" key={question} onClick={() => void submitQuestion(question)}>{question}</button>)}
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </article>
-                    ))}
-                    {chatting && <JarvisThinking />}
-                  </section>
+                {(latestAssistantMessage || chatting) && (
+                  <aside className="latest-response" aria-live="polite" aria-label="Jarvis 最新回答">
+                    <div><span>JARVIS</span><strong>{chatting ? "正在继续分析" : "最新回答"}</strong></div>
+                    {chatting ? <JarvisThinking /> : <p>{latestAssistantMessage?.content}</p>}
+                    <button type="button" onClick={() => setOpenDrawer("conversation")}>查看完整会话 <ArrowUpRight size={14} /></button>
+                  </aside>
                 )}
-
-                <section className="analysis-section" aria-labelledby="analysis-heading">
-                  <div className="section-heading-row">
-                    <div><h2 id="analysis-heading">为什么会这样</h2><p>按订单、广告、转化与数据完整性逐项展开。</p></div>
-                  </div>
-                  <div className="composition-flow">
-                    {composition.blocks.map((block) => (
-                      <ComponentRegistry
-                        key={block.block_id}
-                        block={block}
-                        defaultEvidenceOpen={preferences.evidenceExpanded}
-                        reducedMotion={preferences.reducedMotion}
-                        onOpenEvidence={openEvidence}
-                        onOpenAction={openActionForBlock}
-                        onSubmitFollowUp={(question) => void submitQuestion(question)}
-                      />
-                    ))}
-                  </div>
-                </section>
               </>
             )}
             <div className="canvas-bottom-space" />
@@ -432,6 +401,7 @@ export default function AppShell() {
 
       <SettingsDrawer open={openDrawer === "settings"} onClose={() => setOpenDrawer(null)} preferences={preferences} onChange={setPreferences} />
       <HelpDrawer open={openDrawer === "help"} onClose={() => setOpenDrawer(null)} />
+      <ConversationDrawer open={openDrawer === "conversation"} onClose={() => setOpenDrawer(null)} messages={messages} onSubmitFollowUp={(question) => void submitQuestion(question)} />
     </div>
   );
 }
@@ -504,16 +474,6 @@ function RuntimeState({ title, body, action }: { title: string; body: string; ac
   );
 }
 
-function objectiveLabel(value: HomeComposition["objective_profile"]) {
-  return ({
-    LAUNCH_GROWTH: "新品冷启动 · 订单与排名",
-    SCALE_GROWTH: "稳定放量 · 增长与库存",
-    HARVEST_PROFIT: "利润收割 · 贡献利润",
-    RECOVERY_RANK: "排名恢复 · 订单与 CVR",
-    MIXED_STORE: "混合阶段 · 店铺整体",
-  } as const)[value];
-}
-
 function stateLabel(value: HomeComposition["home_state"]) {
   return ({
     NORMAL: "经营稳定",
@@ -524,57 +484,8 @@ function stateLabel(value: HomeComposition["home_state"]) {
   } as const)[value];
 }
 
-type SummaryMetric = { label: string; value: string; note: string; tone?: "risk" | "positive" };
-
-function buildSummaryMetrics(composition: HomeComposition | null): SummaryMetric[] {
-  if (!composition) return [];
-  const critical = composition.blocks.find((block) => block.component_type === "critical_alert");
-  const executive = composition.blocks.find((block) => block.component_type === "executive_summary");
-  const funnel = composition.blocks.find((block) => block.component_type === "order_funnel");
-  const ads = composition.blocks.find((block) => block.component_type === "ad_diagnosis");
-  const metrics: SummaryMetric[] = [];
-  const orders = payloadNumber(executive, "orders") ?? payloadNumber(critical, "observed_value");
-  const ordersDelta = payloadNumber(executive, "orders_delta_pct") ?? payloadNumber(critical, "delta_pct");
-  if (orders !== null) metrics.push({
-    label: "订单",
-    value: formatMetric(orders),
-    note: ordersDelta === null ? "今日" : `${formatSigned(ordersDelta)} 较基线`,
-    tone: ordersDelta === null ? undefined : ordersDelta < 0 ? "risk" : "positive",
-  });
-  const sales = payloadNumber(executive, "sales");
-  if (sales !== null) metrics.push({ label: "销售额", value: formatCurrency(sales), note: "今日" });
-  const sessions = payloadNumber(funnel, "sessions");
-  if (sessions !== null) metrics.push({ label: "流量", value: formatMetric(sessions), note: "访问人次" });
-  const conversion = payloadNumber(funnel, "unit_session_percentage");
-  if (conversion !== null) metrics.push({ label: "转化率", value: `${formatMetric(conversion, 2)}%`, note: "订单 / 访问" });
-  const acos = payloadNumber(ads, "acos");
-  if (acos !== null) metrics.push({ label: "ACOS", value: `${formatMetric(acos, 2)}%`, note: "14 日点击归因" });
-  return metrics.slice(0, 4);
-}
-
-function payloadNumber(block: HomeBlock | undefined, key: string) {
-  const value = block?.payload[key];
-  return typeof value === "number" ? value : null;
-}
-
-function formatMetric(value: number, digits = 0) {
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: digits }).format(value);
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
-}
-
-function formatSigned(value: number) {
-  return `${value >= 0 ? "+" : ""}${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)}%`;
-}
-
 function formatBusinessDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${value}T12:00:00Z`));
-}
-
-function dataStatusLabel(value: string) {
-  return ({ PROVISIONAL: "归因尚未成熟", MATURE: "数据已成熟", COMPLETE: "数据完整" } as Record<string, string>)[value] ?? value;
 }
 
 function humanizeNarrative(value: string) {

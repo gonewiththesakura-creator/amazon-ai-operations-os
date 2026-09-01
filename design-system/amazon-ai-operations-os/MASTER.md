@@ -6,6 +6,8 @@ This concise authority summary is normalized to [`DESIGN.md`](../../../DESIGN.md
 
 `ZEN EXECUTIVE` (`m1-6-zen-executive-f46862fe`) is a warm, quiet, editorial operating office for an AI COO. The interface should feel refined and immediately actionable: one human judgment first, then typographic metrics, ranked actions, analysis, and evidence. Jarvis is a manager who has already done the work, not a robot mascot or technology spectacle.
 
+M1.7 preserves this visual direction and adds a presentation contract: one judgment, up to four stage-aware metrics, up to three actions, six fixed operating domains, and at most two default-expanded domains. Evidence and raw provenance live only in Inspector; full conversation history lives in its drawer.
+
 Warm light is the default. Dark and system-dark preserve the same semantic hierarchy; they do not restore the retired graphite-and-mint identity.
 
 ## Core Tokens

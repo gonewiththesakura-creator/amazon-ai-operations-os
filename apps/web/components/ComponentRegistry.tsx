@@ -19,7 +19,6 @@ import type { ComponentType, HomeBlock } from "../types/home";
 
 type RegistryProps = {
   block: HomeBlock;
-  defaultEvidenceOpen: boolean;
   reducedMotion: boolean;
   onOpenAction: (block: HomeBlock) => void;
   onOpenEvidence: (block: HomeBlock) => void;
@@ -42,14 +41,12 @@ function formatNumber(value: number | null, options?: Intl.NumberFormatOptions) 
   return value === null ? "—" : new Intl.NumberFormat("en-US", options).format(value);
 }
 
-function BlockFrame({ block, icon, children, defaultEvidenceOpen, onOpenEvidence }: {
+function BlockFrame({ block, icon, children, onOpenEvidence }: {
   block: HomeBlock;
   icon: React.ReactNode;
   children: React.ReactNode;
-  defaultEvidenceOpen: boolean;
   onOpenEvidence: (block: HomeBlock) => void;
 }) {
-  const sourceNames = block.provenance.flatMap((item) => item.source.map((source) => source.name));
   return (
     <section className={`composition-block composition-${block.component_type}`} aria-labelledby={`${block.block_id}-heading`}>
       <header className="composition-block-head">
@@ -62,19 +59,6 @@ function BlockFrame({ block, icon, children, defaultEvidenceOpen, onOpenEvidence
       {children}
 
       <div className="evidence-actions">
-        <div className="evidence-summary">
-          基于 {friendlySource(sourceNames)} · 更新于 {formatUpdatedAt(block.updated_at)}
-        </div>
-        <details className="evidence-disclosure" open={defaultEvidenceOpen}>
-          <summary>展开来源与口径</summary>
-          <dl>
-            <div><dt>显示原因</dt><dd>{block.display_reason}</dd></div>
-            <div><dt>数据期间</dt><dd>{block.data_period.start.slice(0, 10)} → {block.data_period.end.slice(0, 10)}</dd></div>
-            <div><dt>来源</dt><dd>{sourceNames.join(", ") || "未提供"}</dd></div>
-            <div><dt>更新时间</dt><dd>{new Date(block.updated_at).toLocaleString("zh-CN")}</dd></div>
-          </dl>
-          {block.limitations.length > 0 && <p>限制：{block.limitations.join("；")}</p>}
-        </details>
         <button className="evidence-open" type="button" aria-label={`查看依据：${block.title}`} onClick={() => onOpenEvidence(block)}>
           查看依据 <ExternalLink size={13} />
         </button>
@@ -238,7 +222,6 @@ function AnimatedNumber({ value, reducedMotion }: { value: number | null; reduce
 function frameProps(props: RegistryProps) {
   return {
     block: props.block,
-    defaultEvidenceOpen: props.defaultEvidenceOpen,
     onOpenEvidence: props.onOpenEvidence,
   };
 }
@@ -266,16 +249,6 @@ export function UnsupportedComponentBlock({ block }: { block: HomeBlock }) {
 export function ComponentRegistry(props: RegistryProps) {
   const Renderer = REGISTRY[props.block.component_type];
   return Renderer ? <Renderer {...props} /> : <UnsupportedComponentBlock block={props.block} />;
-}
-
-function friendlySource(sourceNames: string[]) {
-  if (sourceNames.some((name) => name.toLowerCase().includes("sp-api"))) return "Amazon SP 模拟数据";
-  if (sourceNames.some((name) => name.toLowerCase().includes("ads"))) return "Amazon Ads 模拟数据";
-  return sourceNames.length ? "已验证的模拟数据" : "已验证数据";
-}
-
-function formatUpdatedAt(value: string) {
-  return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
 function humanizeNarrative(value: string) {

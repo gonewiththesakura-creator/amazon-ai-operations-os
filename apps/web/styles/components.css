@@ -108,13 +108,11 @@
 .followup-command span:last-child { color: var(--moss-strong); white-space: nowrap; }
 
 .evidence-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 18px;
 }
-.evidence-summary { color: var(--text-subtle); font-size: 11px; }
 .evidence-open {
   display: inline-flex;
   align-items: center;
@@ -126,14 +124,6 @@
   font-size: 11px;
 }
 .evidence-open:hover { color: var(--ink); }
-.evidence-disclosure { grid-column: 1 / -1; }
-.evidence-disclosure summary { color: var(--text-subtle); font-size: 11px; cursor: pointer; }
-.evidence-disclosure dl { display: grid; gap: 6px; margin: 10px 0 0; padding: 12px; border-left: 2px solid var(--line-strong); background: var(--surface); }
-.evidence-disclosure dl > div { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 10px; }
-.evidence-disclosure dt,
-.evidence-disclosure dd { margin: 0; color: var(--text-subtle); font-size: 11px; line-height: 1.5; }
-.evidence-disclosure dd { color: var(--secondary); }
-.evidence-disclosure p { margin: 9px 0 0; color: var(--text-subtle); font-size: 11px; }
 
 .unsupported-block {
   display: flex;

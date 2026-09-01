@@ -1,8 +1,8 @@
 # Amazon AI Operations OS
 
-> Current milestone: `M1_6_ZEN_EXECUTIVE_VISUAL_REDESIGN_IMPLEMENTED`
+> Current milestone: `M1_7_INFORMATION_ARCHITECTURE_IMPLEMENTED`
 
-Amazon AI Operations OS is an AI-native operating workspace for Amazon store operations and product research. M1.6 replaces the presentation layer with a warm, editorial executive workspace while preserving the M1 end-to-end synthetic runtime:
+Amazon AI Operations OS is an AI-native operating workspace for Amazon store operations and product research. M1.7 adds a deterministic presentation layer and progressive disclosure to the M1.6 Zen Executive workspace while preserving the M1 end-to-end synthetic runtime:
 
 > Why did orders fall today, and what should I do now?
 
@@ -16,7 +16,8 @@ All demo records and UI outputs are marked `synthetic=true`. The MVP is read-onl
 
 | Capability | Status | Notes |
 |---|---|---|
-| Next.js Zen Executive workspace | IMPLEMENTED | Judgment-first brief, typographic metrics, ranked actions, on-demand inspector, persistent composer, responsive drawers |
+| Next.js Zen Executive workspace | IMPLEMENTED | Judgment-first brief, four summary metrics, three ranked actions, six operating domains, on-demand inspector, persistent composer, responsive drawers |
+| Home presentation model | IMPLEMENTED | Deterministic `HomeComposition -> HomeViewModel` mapping; no arbitrary model-generated UI |
 | FastAPI runtime | IMPLEMENTED | Home, chat, health, and registry endpoints |
 | PostgreSQL schema and RLS | IMPLEMENTED | Migrations `0001` through `0005`, tenant-scoped application role |
 | Synthetic generator | IMPLEMENTED | 20 owned ASINs, 365 days, product-research and procurement domains |
@@ -33,7 +34,7 @@ All demo records and UI outputs are marked `synthetic=true`. The MVP is read-onl
 | SellerSprite / Keepa / public-source ingestion | NOT_IMPLEMENTED | No production connectors in M1 |
 | Amazon external writes | NOT_IMPLEMENTED | Explicitly forbidden in MVP |
 
-## M1.6 Demo
+## M1.7 Demo
 
 The seeded final business day is intentionally anomalous. The Home API automatically selects `ORDER_AD_ANOMALY` and returns registered blocks including Critical Alert, Order Funnel, Sponsored Products diagnosis, priority action, data reference, and follow-up question.
 
@@ -46,7 +47,7 @@ Ask the UI:
 
 The second answer carries the previous run context, labels Sponsored Products attribution `PROVISIONAL`, and does not recommend an immediate bid or budget change before availability and conversion checks.
 
-The formal UI exposes only implemented destinations. Evidence stays collapsed until the user opens “查看依据” or a ranked action. Action drafts resolve their rationale and confidence through matching evidence references. At responsive widths, navigation and inspector surfaces become keyboard-safe drawers; `Escape` closes them and restores focus.
+The formal UI exposes only implemented destinations. The first reading layer contains one judgment, no more than four metrics, and no more than three actions. Six fixed operating domains group the remaining analysis; at most two high-priority domains open by default. Full provenance, raw references, limits, and evidence live only in Inspector. Conversation history lives in its drawer while the home canvas keeps only the latest compact Jarvis response. At responsive widths, navigation and inspector surfaces become keyboard-safe drawers; `Escape` closes them and restores focus.
 
 Warm Light is the default theme. Dark and System modes remain available under Settings. The seeded demo date is `2026-08-31`; override `NEXT_PUBLIC_DEMO_BUSINESS_DATE` when loading a different synthetic or real business day.
 
@@ -131,6 +132,7 @@ With PostgreSQL available, set both `DATABASE_URL` and `TEST_DATABASE_URL` to in
 | `docs/12-m1-runtime.md` | Implemented M1 architecture and remaining boundaries |
 | `docs/13-interaction-audit.md` | M1.5 interaction inventory, inspector contract, and acceptance evidence |
 | `docs/14-m1.6-zen-executive.md` | M1.6 visual contract, responsive evidence, accessibility and verification |
+| `docs/15-m1.7-information-architecture.md` | M1.7 presentation model, operating-domain and progressive-disclosure contract |
 
 ## Product and Data Contracts
 
@@ -148,3 +150,4 @@ With PostgreSQL available, set both `DATABASE_URL` and `TEST_DATABASE_URL` to in
 12. [M1 implemented runtime](docs/12-m1-runtime.md)
 13. [M1.5 interaction audit](docs/13-interaction-audit.md)
 14. [M1.6 Zen Executive acceptance](docs/14-m1.6-zen-executive.md)
+15. [M1.7 information architecture](docs/15-m1.7-information-architecture.md)

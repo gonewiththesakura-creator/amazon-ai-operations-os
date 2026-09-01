@@ -1,11 +1,11 @@
 "use client";
 
-import { CircleHelp, Keyboard, Moon, Settings2, ShieldCheck, X } from "lucide-react";
+import { CircleHelp, Keyboard, MessageCircle, Moon, Settings2, ShieldCheck, X } from "lucide-react";
+import type { ChatResponse } from "../types/chat";
 
 export type WorkspacePreferences = {
   density: "comfortable" | "compact";
   displayTimezone: "America/Los_Angeles" | "Asia/Shanghai" | "BROWSER_LOCAL";
-  evidenceExpanded: boolean;
   reducedMotion: boolean;
   theme: "light" | "dark" | "system";
 };
@@ -83,14 +83,48 @@ export function SettingsDrawer({ open, onClose, preferences, onChange }: Setting
           onChange={(event) => update("reducedMotion", event.target.checked)}
         />
       </label>
-      <label className="toggle-row">
-        <span><strong>默认展开证据</strong><small>动态组件直接显示来源与口径</small></span>
-        <input
-          type="checkbox"
-          checked={preferences.evidenceExpanded}
-          onChange={(event) => update("evidenceExpanded", event.target.checked)}
-        />
-      </label>
+    </DrawerFrame>
+  );
+}
+
+export type ConversationMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  response?: ChatResponse;
+};
+
+export function ConversationDrawer({ open, onClose, messages, onSubmitFollowUp }: DrawerProps & {
+  messages: ConversationMessage[];
+  onSubmitFollowUp: (question: string) => void;
+}) {
+  if (!open) return null;
+  return (
+    <DrawerFrame title="当前会话" icon={<MessageCircle size={18} />} onClose={onClose}>
+      {messages.length === 0 ? (
+        <div className="conversation-empty"><p>还没有经营追问。可从首页快捷问题或底部输入框开始。</p></div>
+      ) : (
+        <div className="conversation-history" aria-label="完整会话">
+          {messages.map((message) => (
+            <article className={`drawer-message drawer-message-${message.role}`} key={message.id}>
+              <span>{message.role === "assistant" ? "JARVIS" : "YOU"}</span>
+              <p>{message.content}</p>
+              {message.response && (
+                <>
+                  <small>{message.response.findings.length} 个发现 · {message.response.evidence_refs.length} 条证据 · SYNTHETIC</small>
+                  {message.response.suggested_followups.length > 0 && (
+                    <div className="drawer-followups">
+                      {message.response.suggested_followups.map((question) => (
+                        <button type="button" key={question} onClick={() => onSubmitFollowUp(question)}>{question}</button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </article>
+          ))}
+        </div>
+      )}
     </DrawerFrame>
   );
 }

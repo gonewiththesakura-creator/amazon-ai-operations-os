@@ -156,6 +156,13 @@ Warm light is the default world. Paper-like planes, disciplined alignment, serif
 - Serif type carries judgment and important section statements; utility sans carries every control and working detail.
 - Moss owns interaction and selection, champagne marks rare value, and risk remains muted and textual.
 - Evidence stays near the decision but raw references move into the warm paper inspector.
+- M1.7 progressive disclosure keeps the first layer to one judgment, four metrics, three actions, and six fixed operating domains.
+
+### M1.7 Information Architecture Contract
+
+`HomeComposition` remains the backend contract. The frontend deterministically maps it into a `HomeViewModel`; the model never emits arbitrary HTML, JavaScript, CSS, or component identifiers. The executive layer shows the judgment, up to four stage-aware metrics, and up to three ranked actions. Analysis is grouped into `SALES_CONVERSION`, `ADVERTISING`, `PRODUCT_LISTING`, `INVENTORY_PROFIT`, `SEARCH_RANKING`, and `MARKET_OPPORTUNITY`.
+
+Only critical and attention domains open by default, with a strict maximum of two. Domain details use registered components and a maximum of five blocks. Raw provenance, attribution limitations, evidence chains, and machine-oriented payloads appear only in Inspector. The home canvas keeps the latest compact Jarvis response; full conversation history opens in a dedicated drawer.
 
 ## Colors
 
