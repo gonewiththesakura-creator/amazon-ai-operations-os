@@ -1,32 +1,57 @@
 # Amazon AI Operations OS Design System
 
-This generated design-system entry is normalized to the product-specific authority in [`DESIGN.md`](../../../DESIGN.md). When the two differ, `DESIGN.md` wins.
+This concise authority summary is normalized to [`DESIGN.md`](../../../DESIGN.md). When the two differ, root `DESIGN.md` wins.
 
 ## Direction
 
-Calm AI Operations Workspace: an AI-first operating narrative with professional Amazon evidence density and restrained Jarvis feedback. Avoid enterprise gateway pages, KPI card walls, blank chat, wellness styling, neon command centers, decorative glass, and arbitrary model-generated UI.
+`ZEN EXECUTIVE` (`m1-6-zen-executive-f46862fe`) is a warm, quiet, editorial operating office for an AI COO. The interface should feel refined and immediately actionable: one human judgment first, then typographic metrics, ranked actions, analysis, and evidence. Jarvis is a manager who has already done the work, not a robot mascot or technology spectacle.
+
+Warm light is the default. Dark and system-dark preserve the same semantic hierarchy; they do not restore the retired graphite-and-mint identity.
 
 ## Core Tokens
 
-| Role | Value |
-| --- | --- |
-| Canvas | `#0d0f0e` |
-| Navigation | `#111411` |
-| Raised | `#171b18` |
-| Text | `#f2f3ed` |
-| Muted | `#a8afa7` |
-| Divider | `#2a302b` |
-| Jarvis | `#68c9a7` |
-| Opportunity | `#d7b56d` |
-| Risk | `#e47d68` |
+| Role | Warm Light | Dark |
+| --- | --- | --- |
+| Canvas | `#f4f1ea` | `#1e201d` |
+| Navigation | `#ece8df` | `#242621` |
+| Surface | `#faf8f3` | `#292b26` |
+| Elevated paper | `#fffdfc` | `#30322d` |
+| Primary ink | `#292722` | `#eeece5` |
+| Secondary ink | `#746f66` | `#b6b1a7` |
+| Hairline | `#ded9d0` | `#3b3d37` |
+| Moss | `#6f7868` | `#9ba493` |
+| Strong moss | `#596353` | `#b5bdad` |
+| Champagne bronze | `#a58b63` | `#c1a97f` |
+| Clay risk | `#a86355` | `#c17c6e` |
+| Slate information | `#6f7f86` | `#92a4aa` |
 
-Use the 4px spacing scale, 6-8px control/card radii, system sans typography with Chinese glyph coverage, tabular numerals, and unframed page sections. Use cards only for discrete records and overlays.
+Use Noto Serif SC and its serif fallbacks only for the daily judgment, major statements, rank numerals, and exceptional values. Use Geist, Noto Sans SC, and system sans for all working UI. Keep zero letter spacing, an 11px minimum, and tabular numerals.
+
+## Layout And Material
+
+- Wide shell: 52px top bar, 224px navigation, fluid center, optional 300px inspector.
+- Reading rail: 960px maximum; judgment 820px; reason 740px; composer 840px.
+- Responsive: inspector overlays at 1199px, navigation at 900px, narrow layout at 640px, compact composer at 380px.
+- Radius: 6px controls, 8px substantial controls, 10px menus/surfaces, 12px composer; no ordinary pills or 20px+ radii.
+- Depth: content is flat and unframed. Shadows belong only to the composer, account menu, responsive rails, inspector overlays, and drawers.
+- Structure: prefer spacing, alignment, typography, and one-pixel hairlines to cards.
+
+## Component Rules
+
+- The top metric summary is a typographic strip, never four KPI cards.
+- Priorities are numbered rows separated by hairlines, with champagne used only for restrained rank/value emphasis.
+- Moss owns action, selection, active navigation, and healthy movement; state still requires text.
+- The inspector is warm paper with an underline tab state and contains raw references, limits, and deep evidence.
+- The composer is elevated paper with a light command shadow and the only solid moss command.
+- Use bare Lucide icons; colored icon tiles are exceptional.
+
+## Rejections
+
+Do not reintroduce dark enterprise SaaS, developer-tool styling, bright mint, neon, electric blue, purple AI gradients, pure-black canvases, glass, glow, decorative blur, particles, bento walls, KPI-card walls, nested cards, release labels, component schema names, or unavailable future destinations in the primary UI.
 
 ## Delivery Gates
 
-- Every enabled control performs a real action.
-- Unavailable destinations are disabled with a reason.
-- Evidence and synthetic status remain visible without hover.
-- Focus, keyboard, reduced-motion, and non-color status cues are present.
-- Verify 375, 768, 1024, and 1440px with no horizontal overflow.
-- Verify loading, empty, error, provisional, synthetic, and read-only states.
+- One operating judgment and the next actions are obvious before dense data.
+- Evidence, confidence, limitations, synthetic provenance, and read-only boundaries remain written and accessible.
+- Focus, keyboard, reduced-motion, non-color status, and stable control dimensions are preserved.
+- Verify 1440px plus the 1199px, 900px, 640px, and 380px transitions with no horizontal overflow.

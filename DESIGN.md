@@ -1,321 +1,318 @@
 ---
-name: Jarvis Daily Operations Workspace
-description: "A calm, evidence-led operating instrument for daily Amazon decisions."
+name: Amazon AI Operations OS
+description: "ZEN EXECUTIVE: a warm editorial operating office for decisive Amazon management."
 colors:
-  surface-canvas: "#0d0f0e"
-  surface-nav: "#111411"
-  surface-raised: "#171b18"
-  surface-quiet: "#1d221e"
-  surface-overlay: "#202521"
-  text-primary: "#f2f3ed"
-  text-secondary: "#a8afa7"
-  text-muted: "#767f77"
-  line: "#2a302b"
-  line-strong: "#3a423b"
-  accent: "#68c9a7"
-  accent-strong: "#8bdabb"
-  accent-muted: "#193a30"
-  opportunity: "#d7b56d"
-  risk: "#e47d68"
-  risk-muted: "#3d2520"
-  info: "#81a9c6"
-  system-light-surface-canvas: "#f3f4ef"
-  system-light-surface-nav: "#e9ebe5"
-  system-light-surface-raised: "#ffffff"
-  system-light-surface-quiet: "#e4e7e1"
-  system-light-surface-overlay: "#ffffff"
-  system-light-text-primary: "#171a17"
-  system-light-text-secondary: "#4e574f"
-  system-light-text-muted: "#69736b"
-  system-light-line: "#cfd4cd"
-  system-light-line-strong: "#aeb7af"
-  system-light-accent: "#147d5d"
-  system-light-accent-strong: "#0f684d"
-  system-light-accent-muted: "#d8ece4"
-  system-light-opportunity: "#8a661f"
-  system-light-risk: "#b64937"
-  system-light-risk-muted: "#f3dcd6"
-  system-light-info: "#416e8d"
+  canvas: "#f4f1ea"
+  nav: "#ece8df"
+  surface: "#faf8f3"
+  elevated: "#fffdfc"
+  ink: "#292722"
+  secondary: "#746f66"
+  muted: "#9a948a"
+  text-subtle: "#645f56"
+  line: "#ded9d0"
+  line-strong: "#c9c2b6"
+  moss: "#6f7868"
+  moss-strong: "#596353"
+  moss-soft: "#e4e7df"
+  luxury: "#a58b63"
+  luxury-soft: "#eee6d8"
+  risk: "#a86355"
+  risk-soft: "#f1e3df"
+  info: "#6f7f86"
+  dark-canvas: "#1e201d"
+  dark-nav: "#242621"
+  dark-surface: "#292b26"
+  dark-elevated: "#30322d"
+  dark-ink: "#eeece5"
+  dark-secondary: "#b6b1a7"
+  dark-muted: "#8f8b82"
+  dark-text-subtle: "#c8c3b9"
+  dark-line: "#3b3d37"
+  dark-line-strong: "#505249"
+  dark-moss: "#9ba493"
+  dark-moss-strong: "#b5bdad"
+  dark-moss-soft: "#373d34"
+  dark-luxury: "#c1a97f"
+  dark-luxury-soft: "#463d30"
+  dark-risk: "#c17c6e"
+  dark-risk-soft: "#4b342f"
+  dark-info: "#92a4aa"
 typography:
   display:
-    fontFamily: "Inter, Noto Sans SC, Microsoft YaHei, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "34px"
-    fontWeight: 650
-    lineHeight: 1.18
+    fontFamily: "Noto Serif SC, Source Han Serif SC, Songti SC, STSong, Georgia, serif"
+    fontSize: "38px"
+    fontWeight: 560
+    lineHeight: 1.42
     letterSpacing: "0"
   headline:
-    fontFamily: "Inter, Noto Sans SC, Microsoft YaHei, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "18px"
-    fontWeight: 650
+    fontFamily: "Noto Serif SC, Source Han Serif SC, Songti SC, STSong, Georgia, serif"
+    fontSize: "21px"
+    fontWeight: 560
     letterSpacing: "0"
   title:
-    fontFamily: "Inter, Noto Sans SC, Microsoft YaHei, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "16px"
-    fontWeight: 620
-    lineHeight: 1.35
+    fontFamily: "Noto Serif SC, Source Han Serif SC, Songti SC, STSong, Georgia, serif"
+    fontSize: "17px"
+    fontWeight: 560
+    lineHeight: 1.45
     letterSpacing: "0"
   body:
-    fontFamily: "Inter, Noto Sans SC, Microsoft YaHei, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Geist, Noto Sans SC, Microsoft YaHei, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
     fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.7
     letterSpacing: "0"
   label:
-    fontFamily: "Inter, Noto Sans SC, Microsoft YaHei, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Geist, Noto Sans SC, Microsoft YaHei, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
     fontSize: "11px"
     fontWeight: 650
-    lineHeight: 1.45
     letterSpacing: "0"
-  mono:
-    fontFamily: "ui-monospace, SFMono-Regular, Consolas, monospace"
-    fontSize: "11px"
-    fontWeight: 400
-    lineHeight: 1.45
+  metric:
+    fontFamily: "Geist, Noto Sans SC, Microsoft YaHei, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+    fontSize: "25px"
+    fontWeight: 540
     letterSpacing: "0"
 rounded:
   none: "0"
-  xs: "4px"
-  sm: "5px"
-  md: "6px"
-  lg: "7px"
-  xl: "8px"
-  pill: "999px"
+  sm: "6px"
+  md: "8px"
+  lg: "10px"
+  xl: "12px"
 spacing:
-  1: "4px"
-  2: "8px"
-  3: "12px"
-  4: "16px"
-  5: "20px"
-  6: "24px"
-  7: "28px"
-  8: "32px"
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "20px"
+  2xl: "24px"
+  3xl: "28px"
+  4xl: "36px"
 components:
   button-send:
-    backgroundColor: "{colors.accent}"
-    textColor: "#0a1712"
+    backgroundColor: "{colors.moss-strong}"
+    textColor: "#fffdf8"
     rounded: "{rounded.md}"
     size: "36px"
   button-command:
-    backgroundColor: "{colors.accent-muted}"
-    textColor: "{colors.accent-strong}"
+    backgroundColor: "transparent"
+    textColor: "{colors.moss-strong}"
     typography: "{typography.label}"
-    rounded: "{rounded.md}"
-    padding: "7px 11px"
-    height: "36px"
+    rounded: "{rounded.sm}"
+    padding: "8px 12px"
   button-ghost:
     backgroundColor: "transparent"
-    textColor: "{colors.text-secondary}"
-    rounded: "{rounded.md}"
+    textColor: "{colors.secondary}"
+    rounded: "{rounded.sm}"
     width: "34px"
     height: "34px"
   chip-prompt:
     backgroundColor: "transparent"
-    textColor: "{colors.text-secondary}"
-    rounded: "{rounded.md}"
-    padding: "6px 9px"
-    height: "33px"
-  chip-status:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-muted}"
-    typography: "{typography.label}"
-    rounded: "{rounded.xs}"
-    padding: "3px 6px"
-  nav-active:
-    backgroundColor: "{colors.accent-muted}"
-    textColor: "{colors.text-primary}"
-    rounded: "{rounded.md}"
-    padding: "7px 8px"
-    height: "37px"
-  nav-disabled:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-muted}"
-    rounded: "{rounded.md}"
-    padding: "7px 8px"
-    height: "37px"
-  composer:
-    backgroundColor: "{colors.surface-raised}"
-    textColor: "{colors.text-primary}"
-    rounded: "{rounded.xl}"
-    padding: "8px 9px 8px 14px"
-    height: "54px"
-    width: "840px"
-  card-evidence-metric:
-    backgroundColor: "{colors.surface-raised}"
-    textColor: "{colors.text-primary}"
-    rounded: "{rounded.md}"
-    padding: "9px"
-  input-select:
-    backgroundColor: "{colors.surface-raised}"
-    textColor: "{colors.text-primary}"
-    rounded: "{rounded.md}"
+    textColor: "{colors.secondary}"
+    rounded: "{rounded.sm}"
     padding: "7px 10px"
-    height: "40px"
+  nav-active:
+    backgroundColor: "{colors.moss-soft}"
+    textColor: "{colors.moss-strong}"
+    rounded: "{rounded.sm}"
+    padding: "9px 10px"
+  composer:
+    backgroundColor: "{colors.elevated}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.xl}"
+    padding: "7px 8px 7px 15px"
+    height: "52px"
+    width: "840px"
+  input-select:
+    backgroundColor: "{colors.elevated}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.sm}"
+    padding: "9px 10px"
+  inspector:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    width: "300px"
   composition-block:
     backgroundColor: "transparent"
-    textColor: "{colors.text-primary}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.none}"
-    padding: "24px 0 20px"
+    padding: "28px 0 20px"
 ---
 
-# Design System: Jarvis Daily Operations Workspace
+# Design System: Amazon AI Operations OS
 
 ## Overview
 
-**Creative North Star: "Calm AI Operations Workspace"**
+**Creative North Star: "ZEN EXECUTIVE"**
 
-Direction contract `m1-5-calm-ops-v1` treats Jarvis as a focused operating instrument for an owner-operator reviewing evidence, not as a dashboard with a chat box. The visual world combines a conversational center with the density of an Amazon workbench and a restrained assistant presence. Judgment, ranked action, provenance, and explicit limits form one reading sequence.
+Direction contract `m1-6-zen-executive-f46862fe` makes the product feel like an AI COO's ordered office: warm, quiet, editorial, architectural, and immediately useful. Jarvis enters as a manager who has already formed a judgment, not as a robot identity, dashboard mascot, or technology spectacle.
 
-The default scene is deep warm graphite for sustained desk use, with warm white copy and sparse mint signals. The system-light preference remaps the same semantic roles to warm off-white and forest tones only when the operating system is light. Both modes reject pure-black theatricality, saturated navy, neon command-center effects, blank-chat emptiness, and walls of KPI cards.
+Warm light is the default world. Paper-like planes, disciplined alignment, serif judgment statements, low-chroma moss interaction, and sparse champagne emphasis create tactile refinement without simulation or ornament. Dark and system themes preserve the same semantic hierarchy, but the identity remains light-first. Cyberpunk, dark AI SaaS, gaming HUDs, glass, bright mint, electric blue, purple gradients, pure-black canvases, bento walls, and KPI-card walls are explicit anti-references.
 
 **Key Characteristics:**
 
-- Judgment-first narrative hierarchy with deterministic evidence close at hand.
-- Flat, rule-separated work surfaces with overlays reserved for context changes.
-- Sparse Jarvis mint, review gold, risk coral, and evidence blue with written status labels.
-- Persistent read-only and synthetic-data boundaries rather than decorative trust cues.
-- Progressive disclosure through evidence details, the inspector, and settings/help drawers.
+- One editorial judgment leads; metrics, ranked actions, analysis, and evidence follow in a calm reading sequence.
+- Warm paper surfaces and hairline rules organize the workspace before bounded containers do.
+- Serif type carries judgment and important section statements; utility sans carries every control and working detail.
+- Moss owns interaction and selection, champagne marks rare value, and risk remains muted and textual.
+- Evidence stays near the decision but raw references move into the warm paper inspector.
 
 ## Colors
 
-The default palette is warm graphite with a low-chroma sage cast; the system-light palette preserves every semantic role instead of introducing a second identity.
+The default palette is warm ivory and layered paper with near-black ink; dark mode is a low-chroma olive-charcoal translation of the same roles rather than a second visual identity.
 
 ### Primary
 
-- **Jarvis Mint** (`accent`, `accent-strong`, `accent-muted`): identifies Jarvis presence, active navigation, focus, positive deltas, progress, and the enabled send command. The muted form carries selection and focus-fill states.
+- **Quiet Moss** (`moss`, `moss-strong`, `moss-soft`): interaction, selection, active navigation, healthy movement, and the enabled send command. The soft form is a restrained selected-state wash.
 
 ### Secondary
 
-- **Review Gold** (`opportunity`): marks provisional states, draft review, limitations, and unsupported-but-safe content.
-- **Risk Coral** (`risk`, `risk-muted`): marks negative deltas and explicit execution boundaries; the muted form is reserved for bounded warnings.
-- **Evidence Blue** (`info`): identifies raw references and provenance-oriented machine text.
+- **Champagne Bronze** (`luxury`, `luxury-soft`): rare high-value opportunities, ranked emphasis, and important business signals. It never becomes a broad background, gradient, or metallic effect.
+- **Clay Risk** (`risk`, `risk-soft`): negative deltas, critical alerts, and explicit boundaries. Always pair it with written meaning.
+
+### Tertiary
+
+- **Slate Information** (`info`): quiet informational and provenance cues where moss would imply action or selection.
 
 ### Neutral
 
-- **Warm Graphite Canvas** (`surface-canvas`) is the central workspace; **Navigation Graphite** (`surface-nav`) separates persistent rails; **Raised Graphite** (`surface-raised`) supports controls and small bounded records; **Quiet Graphite** (`surface-quiet`) carries selected or low-emphasis utility states; **Overlay Graphite** (`surface-overlay`) is reserved for menus and drawers.
-- **Warm White**, **Soft Sage Gray**, and **Muted Sage Gray** (`text-primary`, `text-secondary`, `text-muted`) establish the reading hierarchy.
-- **Hairline Sage** and **Strong Sage Rule** (`line`, `line-strong`) organize the workspace without card framing.
-- Every default semantic token has an implemented `system-light-*` counterpart. It is activated only by `theme=system` under a light OS preference; the explicit dark preference remains graphite.
+- **Warm Ivory Canvas**, **Linen Navigation**, **Paper Surface**, and **Porcelain Elevated** (`canvas`, `nav`, `surface`, `elevated`) separate the shell, rails, reading field, inspector, menus, and composer through tone.
+- **Primary Ink**, **Secondary Ink**, **Muted Ink**, and **Subtle Text** (`ink`, `secondary`, `muted`, `text-subtle`) establish a four-step reading hierarchy without pure black.
+- **Paper Hairline** and **Strong Paper Rule** (`line`, `line-strong`) divide narrative regions and controls without card framing.
+- Every light semantic token has an exact `dark-*` counterpart. Explicit dark mode and system-dark mode remap the variables together; warm light remains the default and system-light result.
 
-**The One Accent Voice Rule.** Mint communicates Jarvis, interaction, selection, and healthy movement; it is not a general decoration color.
+**The One Accent Voice Rule.** Moss communicates action, selection, assistant presence, and healthy movement; it is never general decoration.
 
-**The Text Plus Tone Rule.** Synthetic, provisional, confidence, draft, risk, and read-only states always carry text. Color never bears meaning alone.
+**The Rare Bronze Rule.** Champagne identifies rank or business value in small details only; never use a gold field, metallic treatment, or gradient.
+
+**The Text Plus Tone Rule.** Risk, confidence, draft, synthetic, provisional, and read-only states always carry text; color never bears meaning alone.
 
 ## Typography
 
-**Display Font:** Inter with Noto Sans SC, Microsoft YaHei, and system sans fallbacks.
+**Display Font:** Noto Serif SC with Source Han Serif SC, Songti SC, STSong, and Georgia fallbacks.
 
-**Body Font:** The same bilingual workhorse stack, preserving a single operational voice.
+**Body Font:** Geist with Noto Sans SC, Microsoft YaHei, and system sans fallbacks.
 
-**Label/Mono Font:** UI monospace with SFMono-Regular and Consolas fallbacks, reserved for references and compact machine statuses.
-
-**Character:** The system uses measured weight and generous body leading rather than a decorative technology face. Chinese and English terms share the same hierarchy; numerical operating values use tabular numerals.
+**Character:** The serif/sans pairing is editorial plus utility. Serif makes one judgment feel considered and human; the sans stack keeps dense operating details fast to scan. All interface text uses zero letter spacing and all operating numbers use tabular numerals.
 
 ### Hierarchy
 
-- **Display** (650, 34px, 1.18): the daily operating judgment only; it steps to 28px at the tablet layout and 25px at the narrow layout.
-- **Headline** (650, 18px): major narrative and runtime sections.
-- **Title** (620, 16px, 1.35): registered composition blocks and inspector/action titles.
-- **Body** (400, 14px, 1.7): reasoning and conversation, normally limited to 72ch. Supporting judgment copy may rise to 15px; narrow body text drops to 13px while judgment copy remains 14px.
-- **Label** (650, 11px, 1.45): statuses, metadata, evidence labels, counts, and machine boundaries. Labels never shrink below 11px.
-- **Operating Metric** (620, 18px): key values with tabular numerals; the positive-signal value may rise to 24px.
-- **Mono Reference** (400, 11px, 1.45): composition versions, evidence references, and raw identifiers only.
+- **Display** (560, 38px, 1.42): the daily operating judgment only; it steps to 34px below the navigation breakpoint, 26px on narrow screens, and 24px below 380px.
+- **Headline** (560, 21px): primary narrative sections; narrow screens use 18px.
+- **Title** (560, 17px, 1.45): registered composition and inspector statements; major runtime titles may rise to 22px.
+- **Body** (400, 14px, 1.7): the default interface and conversation text. The reason beneath the daily judgment rises to 15px/1.8 within a 740px measure; composition narrative uses a denser 13px/1.75.
+- **Label** (650, 11px): metadata, evidence labels, state names, counts, and boundaries. Ordinary controls use 11-12px and never drop below 11px.
+- **Metric** (540, 25px): the top typographic metric strip. Registered metric cells use 20px; high-value signals may use 28px serif. All use tabular numerals.
 
-**The Zero Tracking Rule.** All interface text uses zero letter spacing, including uppercase machine labels.
+**The Serif Restraint Rule.** Use serif only for the daily judgment, primary section statements, rank numerals, and exceptional business values; buttons, navigation, metadata, and evidence remain sans.
+
+**The No Microtype Rule.** Normal product content never uses 9px or 10px text; 11px is the implemented floor.
 
 ## Layout
 
-The shell is a full-height operating grid below a 56px top bar. On wide screens, the grid is a 216px left navigation, a fluid central canvas, and an optional 312px inspector. The central content measure is 920px; the persistent composer is capped at 840px and sits below the independently scrolling narrative canvas.
+The shell is a full-height work surface below a 52px top bar. Wide desktop uses a 224px navigation rail, a fluid center, and an optional 300px inspector. Every direct canvas section shares a centered maximum width of 960px with 28px minimum side insets. The hero judgment is capped at 820px, its reason at 740px, and the bottom command surface at 840px.
 
-Spacing follows a compact 4px-derived rhythm, with 8, 12, 16, 20, 24, 28, and 32px as the repeated layout steps. Sections remain unframed and are divided by one-pixel rules. Comfortable density uses 24px vertical composition blocks and 32px canvas insets; compact density reduces block padding and the canvas top inset without changing type size.
+The desktop hero begins with 36px top padding, followed by the typographic metric strip, a 28px ranked-priority section, and unframed analysis blocks with 28px/20px vertical padding. Repeated working intervals use the extracted 4, 8, 12, 16, 20, 24, 28, and 36px rhythm. One-pixel rules, shared baselines, and whitespace do the work that cards usually do.
 
-At 1119px and below, the inspector becomes a right overlay up to 340px wide. At 800px and below, the 216px navigation also becomes a left overlay up to 260px wide and the main canvas takes the full grid. At 600px and below, the top bar becomes 52px, the toolbar 50px, canvas insets become 16px, prompt chips scroll horizontally, status/detail layouts wrap, and the composer keeps a ten-pixel viewport margin. The responsive contract is no horizontal viewport overflow at 375, 768, 1024, or 1440px.
+At 1199px and below, the inspector leaves the grid and becomes a 300px right overlay. At 900px and below, navigation becomes a left overlay, the reading measure becomes 720px with 20px side insets, and the judgment steps to 34px. At 640px and below, the top bar becomes 48px, the toolbar 44px, canvas insets become 14px, hero copy becomes 26px, metrics collapse to two columns, selected details simplify, and the main sections are explicitly reordered for scanability. At 380px and below, hero copy becomes 24px and the composer removes its shortcut column.
 
-**The Reading Rail Rule.** Judgment, ranked action, conversation, and registered evidence share one centered measure; side rails hold navigation and inspection, never a second competing narrative.
+**The 960 Reading Rail Rule.** Judgment, metric strip, ranked action, conversation, and registered analysis share one centered rail; navigation and evidence remain supporting rails, never competing canvases.
+
+**The Space Is Structure Rule.** Add hierarchy with measure, alignment, section padding, and hairlines before adding a bounded surface.
 
 ## Elevation & Depth
 
-The workspace is flat by default. Depth comes from tonal layering and structural rules; shadows appear only when a surface crosses context or when the persistent composer must remain legible over scrolling content.
+The system is quiet and flat at rest. Paper tones and hairline rules create most depth; narrative sections, metric strips, priority rows, and composition blocks have no shadow and no enclosing card.
 
 ### Shadow Vocabulary
 
-- **Overlay structural shadow** (`0 18px 48px rgba(0, 0, 0, 0.42)`; system light uses `rgba(35, 43, 37, 0.18)`): account menus, the responsive inspector, navigation overlay, and workspace drawers.
-- **Composer dock shadow** (`0 14px 34px rgba(0, 0, 0, 0.3)`): the persistent bottom composer only; focus adds a two-pixel muted-accent halo.
-- **Context scrim** (`rgba(4, 6, 5, 0.58-0.68)`): separates modal drawers and responsive rails from the workspace without blur.
+- **Command paper** (`0 12px 36px rgba(61, 56, 47, 0.09), 0 2px 8px rgba(61, 56, 47, 0.04)`): the persistent composer in warm light only.
+- **Command paper, dark** (`0 12px 38px rgba(0, 0, 0, 0.26)`): the semantic dark-mode composer shadow.
+- **Paper overlay** (`0 22px 60px rgba(56, 51, 43, 0.16)`): account menu, responsive rails, inspector overlay, and workspace drawer in warm light.
+- **Paper overlay, dark** (`0 22px 60px rgba(0, 0, 0, 0.42)`): the semantic dark-mode overlay shadow.
+- **Context scrim** (`rgba(41, 39, 34, 0.18-0.22)`): separates responsive rails and drawers without blur.
 
-**The Flat-by-Default Rule.** Narrative sections and registered composition blocks receive no shadow and no enclosing card; rules and spacing carry the hierarchy.
+**The Flat-by-Default Rule.** Normal content is unframed and shadowless; spacing, type, tone, and rules establish hierarchy.
 
-**The Context-Crossing Rule.** A shadow is allowed only when an element overlays content, opens outside its rail, or persists above a scrolling region.
+**The Context-Crossing Rule.** Shadow is allowed only for the composer, account menu, responsive inspector/navigation, and drawers because those surfaces cross or persist above context.
 
 ## Shapes
 
-Corners are compact and utilitarian. Four-pixel corners belong to status labels, release tags, and raw references; five-pixel corners belong to dense menu rows; six-pixel corners are the standard for controls, prompt chips, icons, inputs, and metric tiles; seven-pixel corners identify small bounded warnings or repeated records; eight-pixel corners are reserved for the composer, menus, and other substantial overlays. Pills are limited to compact top-level status and tab counts, while rank markers, presence dots, and avatars are circular.
+The form language is gently softened but still architectural. Small controls use 6px corners, send and other substantial controls use 8px, menus and bounded surfaces use 10px, and the paper composer uses 12px. Drawers and docked rails remain square at the viewport edge. Avatars, progress dots, and tiny status geometry may be circular.
 
-Borders remain one pixel and semantic: normal rules use the quiet divider, stronger overlay edges use the strong divider, and accent/risk borders appear only for state. No component uses decorative clipping, excessive rounding, or a soft floating silhouette.
+Borders are one pixel and semantic. Default controls use the normal hairline, more consequential boundaries use the strong hairline, and moss, champagne, or clay strokes appear only for state. No ordinary text button becomes a pill, and no surface uses a 20px-or-larger decorative radius.
 
-**The Tight Geometry Rule.** The 4-8px radius range keeps the workspace precise; full rounding is for status geometry, never for ordinary text commands.
+**The Twelve-Pixel Ceiling Rule.** Standard surfaces stop at 12px; full rounding belongs only to avatars, dots, and genuinely circular status geometry.
 
 ## Components
 
 ### Buttons
 
-- **Solid Send:** a 36px square mint command with a six-pixel radius and dark ink. Hover uses the stronger mint; disabled changes to the quiet surface with muted text.
-- **Muted Command:** a minimum 36px text command with muted-mint fill, accent border, six-pixel radius, and 7px by 11px padding. Hover strengthens the border and text without lifting the control.
-- **Ghost/Icon:** a stable 34px square, transparent by default. Hover adds a raised tonal surface and quiet border. Disabled controls retain native `disabled`, muted color, and reduced opacity.
-- **Focus:** all buttons, inputs, selects, and summaries use a two-pixel mint outline with a two-pixel offset.
+- **Shape:** icon controls use stable 34px squares with gently curved 6px corners; the send command is a stable 36px square with an 8px corner.
+- **Primary:** the send command is the only solid moss action, using strong moss and warm-white icon ink. Disabled send falls back to the hairline and muted ink.
+- **Secondary:** text commands remain transparent with a one-pixel moss or neutral border; prompt actions use compact 7px/10px padding.
+- **Hover / Focus:** icon controls shift border, paper tone, and ink within 140ms; other commands use immediate border or ink changes. Global focus-visible uses a two-pixel moss outline with two-pixel offset.
 
 ### Chips
 
-- **Prompt Chip:** a minimum 33px outlined command with a six-pixel radius and 6px by 9px padding. Hover shifts to muted mint with a stronger green border.
-- **Status Badge:** a four-pixel compact label with 3px by 6px padding. Synthetic, provisional, draft, confidence, and release variants always include literal text.
+- **Style:** prompt chips are quiet outlined commands with 6px corners, transparent fill, secondary ink, and 7px/10px padding.
+- **State:** hover strengthens the moss border and ink. Operational state is written in text rather than expressed as a field of badges.
 
 ### Cards / Containers
 
-- **Composition Block:** the signature registered-content container is unframed, padded 24px vertically, and separated by a bottom rule. Its header pairs a 30px quiet-surface icon tile with title and explicit status badges.
-- **Evidence Metric:** a true bounded tile in the inspector, using a raised surface, one-pixel divider, six-pixel corner, and 9px padding.
-- **Draft/Warning Record:** seven-pixel corners and a one-pixel semantic border. Warning backgrounds are muted, never glow-filled.
-- **Nested containers:** do not put cards inside composition blocks. Evidence detail is a disclosure and definition list, not another decorative card layer.
+- **Corner Style:** ordinary narrative regions have no container or radius; the store-context record uses 8px and account menus use 10px.
+- **Background:** bounded records use translucent paper or elevated paper, never a detached white card wall.
+- **Shadow Strategy:** cards remain flat; only context-crossing overlays use the overlay token.
+- **Border:** one-pixel paper rules define selected records and small bounded data surfaces.
+- **Internal Padding:** compact records use 10-16px; unframed narrative blocks use 28px/20px vertical rhythm.
 
 ### Inputs / Fields
 
-- **Composer:** a persistent 54px field with an eight-pixel radius, raised surface, structural border, 8px/9px/8px/14px padding, Jarvis icon, shortcut hint, and fixed send control. Focus strengthens the border and adds a muted accent halo.
-- **Select:** a minimum 40px raised field with a strong divider, six-pixel radius, and 7px by 10px padding.
-- **Toggles and segmented controls:** native checkboxes retain the accent color; binary option groups use a quiet selected segment inside a seven-pixel outlined track.
+- **Style:** the composer is elevated paper with a strong hairline, 12px corners, a 52px minimum height, and a maximum 840px working width. Drawer selects use elevated paper, a normal hairline, 6px corners, and 9px/10px padding.
+- **Focus:** inputs use the global two-pixel moss focus-visible outline; the composer remains visually stable as focus moves inside it.
+- **Disabled:** unavailable input and send states use muted ink and hairline fill without hidden explanation.
 
 ### Navigation
 
-- The 216px navigation rail uses quiet text, 37px destinations, six-pixel corners, and 7px by 8px padding. Active state is muted mint plus a mint icon; M2 destinations remain disabled, visibly tagged, and titled with their availability reason.
-- The top bar remains 56px with a bottom rule, brand mark, synthetic/AI status, disabled notifications, and the account menu. At narrow widths it becomes 52px and exposes the menu button.
-- The inspector uses four equal tabs with a two-pixel active underline, counts in pills, an independently scrolling body, and a persistent read-only footer.
+- The 224px linen rail uses bare Lucide icons and 12px sans labels. Hover introduces paper tone; the active destination uses soft moss with strong moss text and 6px corners. Only current capabilities appear.
+- At 900px and below, navigation becomes a left overlay with a scrim and explicit close command. The 52px top bar is reduced to brand, a weak demo label, and account access.
 
-### Drawers and Inspector
+### Warm Paper Inspector
 
-- Evidence opens in the inspector without disturbing narrative scroll. Context, evidence, action, and approval are explicit modes.
-- Settings and help use a right drawer up to 420px wide over a scrim. The drawer is a modal dialog with a named heading, close control, strong edge, and structural overlay shadow.
-- Action drafts expose reason, downside, confidence, observation period, evidence, approval requirement, and the literal `NO AMAZON WRITE ACCESS` boundary. There is no approval or execution control in M1.5.
+- The 300px inspector uses the main paper surface, a hairline left edge, and four equal 11px tabs. Active state is a two-pixel moss underline rather than a filled tab.
+- It is docked on wide screens, overlays from the right at 1199px and below, and widens only up to 360px on narrow screens. Raw references and limitations live here rather than on the main canvas.
 
-### Motion and Runtime State
+### Typographic Metric Strip
 
-- Ordinary hover and layout transitions run for 160-180ms with standard ease. The refreshed judgment reveals once over 420ms with a restrained fade, two-pixel blur, and five-pixel rise.
-- Jarvis loading and thinking use staged text/dots; refresh alone uses an 800ms spin. No background or infinite decorative effect is allowed.
-- `prefers-reduced-motion` and the in-app reduced-motion preference reduce every animation and transition to 0.001ms and a single iteration.
-- Loading, empty, error, unsupported, synthetic, provisional, and read-only states are rendered explicitly; enabled controls always produce a real local result.
+- Four equal desktop columns share one top/bottom rule and subtle vertical dividers. Labels are 11px, values are 25px tabular sans, and deltas use written context plus semantic color.
+- At 640px the strip becomes a stable two-column grid. It never becomes four independent KPI cards.
+
+### Ranked Priority List
+
+- Each action is an unframed row with a champagne serif rank, a clear 14px title, a 12px reason, and a written state. A single hairline separates rows.
+- The row retains its order and hierarchy on narrow screens while hiding low-priority state detail rather than shrinking type below the floor.
+
+### Registered Composition Block
+
+- Registered analysis renders as an unframed 28px/20px section with a serif 17px title, 13px/1.75 narrative, data lines, and explicit evidence entry points.
+- Component schema names and raw tool output do not appear in the primary reading surface; evidence disclosure moves into the inspector.
 
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** lead the canvas with one operating judgment, its reason, ranked review actions, and immediate evidence access.
-- **Do** use one-pixel rules and shared reading alignment before introducing a bounded container.
-- **Do** preserve exact provenance, attribution, confidence, limitation, synthetic, and read-only labels in every relevant component.
-- **Do** keep controls at their implemented stable dimensions and at least 40px touch targets on narrow viewports.
-- **Do** use Lucide icons with accessible names for icon-only commands and preserve visible focus.
-- **Do** adapt the same semantic palette and hierarchy across the default dark and system-light modes.
+- **Do** lead every home view with one human operating judgment, then show the minimum metrics and ranked actions needed to act.
+- **Do** use the exact warm-light semantic roles by default and remap all roles together in explicit dark or system-dark mode.
+- **Do** use shared alignment, generous measure, one-pixel rules, and whitespace before introducing a bounded surface.
+- **Do** keep evidence, confidence, limitations, synthetic provenance, and read-only boundaries available in written language.
+- **Do** use Lucide icons with accessible names, stable control dimensions, visible focus, and tabular operating numbers.
+- **Do** verify the 1199px inspector overlay, 900px navigation overlay, 640px narrow layout, and 380px composer simplification without horizontal overflow.
 
 ### Don't:
 
-- **Don't** turn the home surface into a KPI-card dashboard, a blank chat page, or a neon command center.
-- **Don't** add gradients, glow, decorative blur, particles, spotlight effects, floating page sections, or cards nested inside cards.
-- **Don't** use color alone for status, hide evidence behind hover, or imply that a draft can write to Amazon.
-- **Don't** round ordinary controls into pills or exceed the established eight-pixel surface radius.
-- **Don't** add arbitrary UI outside the registered `HomeComposition` component boundary.
-- **Don't** animate continuously when the user is not waiting for a real operation.
+- **Don't** reintroduce dark enterprise SaaS, developer-tool styling, bright mint, neon, glass, glow, gradients, decorative blur, particles, or pure-black canvases.
+- **Don't** turn metrics, priorities, or analysis into a bento wall, KPI-card wall, nested cards, or floating page sections.
+- **Don't** use champagne as a field, gradient, or metallic effect, and don't use color alone for operational meaning.
+- **Don't** use serif for buttons or utility UI, shrink normal content below 11px, or add letter spacing.
+- **Don't** round ordinary text controls into pills, exceed the 12px surface ceiling, or add shadows to normal content.
+- **Don't** expose release labels, component schema names, raw tool output, or future unavailable destinations in the primary UI.
