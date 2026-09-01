@@ -19,3 +19,8 @@ venv/
 synthetic-output/
 data/postgres/
 data/minio/
+
+# Local design-agent tool installations (project output lives in PRODUCT.md/DESIGN.md).
+.agents/
+.codex/
+.impeccable/
