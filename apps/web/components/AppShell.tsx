@@ -2,10 +2,9 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Bell,
-  Bot,
-  ChevronDown,
+  ArrowUpRight,
   CircleGauge,
+  LoaderCircle,
   Menu,
   PanelRight,
   RefreshCw,
@@ -34,7 +33,7 @@ const defaultPreferences: WorkspacePreferences = {
   displayTimezone: "America/Los_Angeles",
   evidenceExpanded: false,
   reducedMotion: false,
-  theme: "dark",
+  theme: "light",
 };
 
 type LoadState = "loading" | "success" | "empty" | "error";
@@ -46,7 +45,7 @@ export default function AppShell() {
   const composerRef = useRef<HTMLInputElement>(null);
   const inspectorOpenerRef = useRef<HTMLElement | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [inspectorMode, setInspectorMode] = useState<InspectorMode>("context");
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
@@ -86,10 +85,10 @@ export default function AppShell() {
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem("amazon-ai-os:workspace-preferences");
+      const stored = window.localStorage.getItem("amazon-ai-os:workspace-preferences:v1.6");
       if (stored) setPreferences({ ...defaultPreferences, ...JSON.parse(stored) as Partial<WorkspacePreferences> });
     } catch {
-      window.localStorage.removeItem("amazon-ai-os:workspace-preferences");
+      window.localStorage.removeItem("amazon-ai-os:workspace-preferences:v1.6");
     } finally {
       setPreferencesLoaded(true);
     }
@@ -98,7 +97,7 @@ export default function AppShell() {
 
   useEffect(() => {
     if (!preferencesLoaded) return;
-    window.localStorage.setItem("amazon-ai-os:workspace-preferences", JSON.stringify(preferences));
+    window.localStorage.setItem("amazon-ai-os:workspace-preferences:v1.6", JSON.stringify(preferences));
     document.documentElement.dataset.density = preferences.density;
     document.documentElement.dataset.motion = preferences.reducedMotion ? "reduced" : "full";
     document.documentElement.dataset.theme = preferences.theme;
@@ -141,6 +140,7 @@ export default function AppShell() {
     [composition, selectedActionId],
   );
   const userQuestions = messages.filter((message) => message.role === "user").map((message) => message.content);
+  const summaryMetrics = useMemo(() => buildSummaryMetrics(composition), [composition]);
 
   async function submitQuestion(question: string) {
     const normalized = question.trim();
@@ -235,21 +235,18 @@ export default function AppShell() {
       <header className="topbar">
         <button className="icon-control mobile-menu" type="button" aria-label="打开导航" onClick={() => setMobileNav(true)}><Menu size={19} /></button>
         <button className="brand" type="button" onClick={showHome} aria-label="返回今日运营顶部">
-          <span className="brand-mark"><Sparkles size={15} /></span>
-          <span>AMAZON OPS <small>/ JARVIS</small></span>
+          <span>OPS</span>
         </button>
         <div className="topbar-spacer" />
-        <span className="top-status synthetic-status"><span /> SYNTHETIC DATA</span>
-        <span className="top-status ai-status">{composition?.data_status.ai_mode === "ENABLED" ? "AI ENABLED" : "DETERMINISTIC FALLBACK"}</span>
-        <button className="icon-control" type="button" disabled title="通知将在 M2 开放" aria-label="通知，M2 开放"><Bell size={17} /></button>
+        <span className="demo-label">Demo data</span>
         <div className="account-control">
           <button className="avatar-button" type="button" aria-label="打开账户菜单" aria-expanded={accountOpen} onClick={() => setAccountOpen((current) => !current)}>JT</button>
           {accountOpen && (
             <div className="account-menu" role="menu">
-              <div><strong>JT</strong><span>Owner · Demo tenant</span></div>
-              <div className="account-facts"><span>Atlas Home Goods</span><span>Amazon US</span><span>Read only</span></div>
+              <div><strong>JT</strong><span>店主 · 演示工作区</span></div>
+              <div className="account-facts"><span>Atlas Home Goods</span><span>美国站</span><span>只读</span></div>
               <button type="button" role="menuitem" onClick={() => { setAccountOpen(false); setOpenDrawer("settings"); }}><Settings2 size={15} /> 工作区设置</button>
-              <button type="button" role="menuitem" onClick={() => { setAccountOpen(false); setOpenDrawer("help"); }}><ShieldCheck size={15} /> 查看数据边界</button>
+              <button type="button" role="menuitem" onClick={() => { setAccountOpen(false); setOpenDrawer("help"); }}><ShieldCheck size={15} /> 帮助与边界</button>
             </div>
           )}
         </div>
@@ -296,32 +293,41 @@ export default function AppShell() {
             {composition && loadState === "success" && (
               <>
                 <section className="jarvis-brief" aria-labelledby="daily-judgment">
-                  <div className="brief-status-line">
-                    <span className="jarvis-presence"><Bot size={14} /> Jarvis daily brief</span>
-                    <span>{composition.business_date} · Amazon US</span>
-                    <span className={`data-state data-state-${composition.data_status.status.toLowerCase()}`}>{composition.data_status.status}</span>
-                  </div>
-                  <h1 id="daily-judgment" key={composition.composition_id}>{composition.top_issue.summary}</h1>
-                  <p className="judgment-reason">{composition.overall_judgment}</p>
+                  <p className="business-date">{formatBusinessDate(composition.business_date)} · 美国站</p>
+                  <p className="greeting">早上好。</p>
+                  <h1 id="daily-judgment" key={composition.composition_id}>{humanizeNarrative(composition.top_issue.summary)}</h1>
+                  <p className="judgment-reason">{humanizeNarrative(composition.overall_judgment)}</p>
                   <div className="brief-facts">
-                    <span><small>当前目标</small><strong>{objectiveLabel(composition.objective_profile)}</strong></span>
-                    <span><small>置信度</small><strong>{Math.round(composition.overall_confidence * 100)}%</strong></span>
-                    <span><small>最佳信号</small><strong>{composition.best_signal.summary}</strong></span>
+                    <span><small>经营目标</small><strong>{objectiveLabel(composition.objective_profile)}</strong></span>
+                    <span><small>数据状态</small><strong>{dataStatusLabel(composition.data_status.status)}</strong></span>
+                    <span><small>Jarvis 已检查今日经营数据</small><strong>{humanizeNarrative(composition.best_signal.summary)}</strong></span>
                   </div>
                 </section>
 
+                {summaryMetrics.length > 0 && (
+                  <section className="metric-strip" aria-label="今日经营摘要">
+                    {summaryMetrics.map((metric) => (
+                      <div className="metric-strip-item" key={metric.label}>
+                        <span>{metric.label}</span>
+                        <strong>{metric.value}</strong>
+                        <small className={metric.tone ? `tone-${metric.tone}` : ""}>{metric.note}</small>
+                      </div>
+                    ))}
+                  </section>
+                )}
+
                 <section className="priority-section" aria-labelledby="priority-heading">
                   <div className="section-heading-row">
-                    <div><h2 id="priority-heading">现在先做什么</h2><p>按经营影响和证据确定性排序，只生成审阅草案。</p></div>
-                    <button type="button" className="section-link" onClick={() => { rememberInspectorOpener(); setInspectorMode("approval"); setInspectorOpen(true); }}>查看全部草案</button>
+                    <div><h2 id="priority-heading">现在先做什么</h2><p>Jarvis 已按经营影响和证据确定性排序。</p></div>
+                    <button type="button" className="section-link" onClick={() => { rememberInspectorOpener(); setInspectorMode("approval"); setInspectorOpen(true); }}>查看全部</button>
                   </div>
                   <ol className="priority-list">
                     {composition.top_actions.map((action) => (
                       <li key={action.action_id}>
                         <button type="button" onClick={() => openAction(action)}>
-                          <span className="priority-rank">{action.priority}</span>
-                          <span><strong>{action.title}</strong><small>{action.reason}</small></span>
-                          <span className="priority-state">审阅草案</span>
+                          <span className="priority-rank">{String(action.priority).padStart(2, "0")}</span>
+                          <span><strong>{humanizeNarrative(action.title)}</strong><small>{actionListReason(action)}</small></span>
+                          <span className="priority-state">查看原因 <ArrowUpRight size={14} /></span>
                         </button>
                       </li>
                     ))}
@@ -329,7 +335,7 @@ export default function AppShell() {
                 </section>
 
                 <section className="quick-prompts" aria-label="快捷问题">
-                  <span>追问 Jarvis</span>
+                  <span>继续问 Jarvis</span>
                   <div>{quickQuestions.map((question) => <button type="button" key={question} onClick={() => void submitQuestion(question)}>{question}</button>)}</div>
                 </section>
 
@@ -369,8 +375,7 @@ export default function AppShell() {
 
                 <section className="analysis-section" aria-labelledby="analysis-heading">
                   <div className="section-heading-row">
-                    <div><h2 id="analysis-heading">为什么会这样</h2><p>以下内容完全由已注册的 HomeComposition 组件组合。</p></div>
-                    <span className="composition-version">HOME@{composition.schema_version} · SYNTHETIC</span>
+                    <div><h2 id="analysis-heading">为什么会这样</h2><p>按订单、广告、转化与数据完整性逐项展开。</p></div>
                   </div>
                   <div className="composition-flow">
                     {composition.blocks.map((block) => (
@@ -406,7 +411,7 @@ export default function AppShell() {
               <button className="send-button" type="submit" aria-label="发送问题" disabled={!input.trim() || !composition || chatting}><Send size={16} /></button>
             </form>
             <div className="composer-context">
-              <span>Amazon US</span><span>{composition?.business_date ?? "等待数据"}</span><span>All ASINs</span><span>SP Ads</span>
+              <span>美国站</span><span>{composition?.business_date ?? "等待数据"}</span><span>全部 ASIN</span><span>SP 广告</span>
               <strong><ShieldCheck size={12} /> 只读 · 模拟数据</strong>
             </div>
           </div>
@@ -468,8 +473,8 @@ function findBlockAction(block: HomeBlock, actions: ActionSummary[]) {
 function JarvisLoading() {
   return (
     <div className="runtime-state jarvis-loading" aria-live="polite">
-      <Bot size={22} />
-      <h2>Jarvis 正在组织今日经营结论</h2>
+      <LoaderCircle size={22} />
+      <h2>正在整理今日经营判断</h2>
       <ul>
         <li><span />读取已验证的店铺日指标</li>
         <li><span />比较合格基线与归因成熟度</li>
@@ -482,7 +487,7 @@ function JarvisLoading() {
 function JarvisThinking() {
   return (
     <article className="chat-message chat-assistant jarvis-thinking" aria-label="Jarvis 正在分析">
-      <span className="message-role">JARVIS</span>
+      <span className="message-role">Jarvis</span>
       <div className="message-body"><p>正在调用 Store Operations Agent 与确定性工具</p><span className="thinking-line"><i /><i /><i /></span></div>
     </article>
   );
@@ -491,7 +496,7 @@ function JarvisThinking() {
 function RuntimeState({ title, body, action }: { title: string; body: string; action?: () => void }) {
   return (
     <div className="runtime-state">
-      <Bot size={22} />
+      <CircleGauge size={22} />
       <h2>{title}</h2>
       <p>{body}</p>
       {action && <button className="secondary-command" type="button" onClick={action}>重新连接</button>}
@@ -517,4 +522,74 @@ function stateLabel(value: HomeComposition["home_state"]) {
     MARKET_POLICY_CHANGE: "市场 / 政策变化",
     DATA_INCOMPLETE: "数据不完整",
   } as const)[value];
+}
+
+type SummaryMetric = { label: string; value: string; note: string; tone?: "risk" | "positive" };
+
+function buildSummaryMetrics(composition: HomeComposition | null): SummaryMetric[] {
+  if (!composition) return [];
+  const critical = composition.blocks.find((block) => block.component_type === "critical_alert");
+  const executive = composition.blocks.find((block) => block.component_type === "executive_summary");
+  const funnel = composition.blocks.find((block) => block.component_type === "order_funnel");
+  const ads = composition.blocks.find((block) => block.component_type === "ad_diagnosis");
+  const metrics: SummaryMetric[] = [];
+  const orders = payloadNumber(executive, "orders") ?? payloadNumber(critical, "observed_value");
+  const ordersDelta = payloadNumber(executive, "orders_delta_pct") ?? payloadNumber(critical, "delta_pct");
+  if (orders !== null) metrics.push({
+    label: "订单",
+    value: formatMetric(orders),
+    note: ordersDelta === null ? "今日" : `${formatSigned(ordersDelta)} 较基线`,
+    tone: ordersDelta === null ? undefined : ordersDelta < 0 ? "risk" : "positive",
+  });
+  const sales = payloadNumber(executive, "sales");
+  if (sales !== null) metrics.push({ label: "销售额", value: formatCurrency(sales), note: "今日" });
+  const sessions = payloadNumber(funnel, "sessions");
+  if (sessions !== null) metrics.push({ label: "流量", value: formatMetric(sessions), note: "访问人次" });
+  const conversion = payloadNumber(funnel, "unit_session_percentage");
+  if (conversion !== null) metrics.push({ label: "转化率", value: `${formatMetric(conversion, 2)}%`, note: "订单 / 访问" });
+  const acos = payloadNumber(ads, "acos");
+  if (acos !== null) metrics.push({ label: "ACOS", value: `${formatMetric(acos, 2)}%`, note: "14 日点击归因" });
+  return metrics.slice(0, 4);
+}
+
+function payloadNumber(block: HomeBlock | undefined, key: string) {
+  const value = block?.payload[key];
+  return typeof value === "number" ? value : null;
+}
+
+function formatMetric(value: number, digits = 0) {
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: digits }).format(value);
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+}
+
+function formatSigned(value: number) {
+  return `${value >= 0 ? "+" : ""}${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)}%`;
+}
+
+function formatBusinessDate(value: string) {
+  return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${value}T12:00:00Z`));
+}
+
+function dataStatusLabel(value: string) {
+  return ({ PROVISIONAL: "归因尚未成熟", MATURE: "数据已成熟", COMPLETE: "数据完整" } as Record<string, string>)[value] ?? value;
+}
+
+function humanizeNarrative(value: string) {
+  return value
+    .replaceAll("Sponsored Products", "广告")
+    .replaceAll("Sessions", "流量")
+    .replaceAll("CVR", "转化率")
+    .replaceAll("PROVISIONAL", "归因尚未成熟")
+    .replaceAll("订单、流量 与 转化率 同时下降", "订单、流量与转化率同时下降")
+    .replaceAll("转化率 同时下降", "转化率同时下降");
+}
+
+function actionListReason(action: ActionSummary) {
+  if (action.action_type.includes("ATTRIBUTION")) return "当前归因尚未成熟，避免过早根据 ACOS 调整。";
+  if (action.action_type.includes("AD")) return "搜索词与预算需要复核，但不会执行任何修改。";
+  if (action.action_type.includes("CONVERSION")) return "先排除可售、价格与详情页对转化的阻断。";
+  return "仅生成建议，等待人工审阅。";
 }

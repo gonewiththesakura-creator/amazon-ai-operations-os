@@ -7,7 +7,7 @@ export type WorkspacePreferences = {
   displayTimezone: "America/Los_Angeles" | "Asia/Shanghai" | "BROWSER_LOCAL";
   evidenceExpanded: boolean;
   reducedMotion: boolean;
-  theme: "dark" | "system";
+  theme: "light" | "dark" | "system";
 };
 
 type DrawerProps = {
@@ -62,14 +62,14 @@ export function SettingsDrawer({ open, onClose, preferences, onChange }: Setting
       <fieldset className="drawer-section">
         <legend>主题</legend>
         <div className="segmented-control">
-          {(["dark", "system"] as const).map((theme) => (
+          {(["light", "dark", "system"] as const).map((theme) => (
             <button
               type="button"
               key={theme}
               className={preferences.theme === theme ? "segment-active" : ""}
               onClick={() => update("theme", theme)}
             >
-              {theme === "dark" ? "深色" : "跟随系统"}
+              {theme === "light" ? "暖色浅色" : theme === "dark" ? "深色" : "跟随系统"}
             </button>
           ))}
         </div>
@@ -113,7 +113,11 @@ export function HelpDrawer({ open, onClose }: DrawerProps) {
       </div>
       <div className="drawer-section">
         <h3>如何检查结论</h3>
-        <p>点击任意动态块的“检查证据”，右侧会显示数据期间、来源语义、归因窗口、更新时间、置信度、限制与原始引用。</p>
+        <p>点击任意分析内容的“查看依据”，右侧会显示数据期间、来源语义、归因窗口、更新时间、置信度、限制与原始引用。</p>
+      </div>
+      <div className="drawer-section roadmap-section">
+        <h3>后续工作台</h3>
+        <p>ASIN、广告、关键词、选品、实验与审计工作台将在后续开发中逐步开放。</p>
       </div>
     </DrawerFrame>
   );

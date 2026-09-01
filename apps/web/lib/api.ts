@@ -4,6 +4,8 @@ import type { HomeComposition } from "../types/home";
 export const DEMO_TENANT_ID =
   process.env.NEXT_PUBLIC_DEMO_TENANT_ID ?? "00000000-0000-0000-0000-000000000001";
 
+const DEMO_BUSINESS_DATE = process.env.NEXT_PUBLIC_DEMO_BUSINESS_DATE ?? "2026-08-31";
+
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
 export class ApiError extends Error {
@@ -33,7 +35,8 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function getHomeComposition(signal?: AbortSignal): Promise<HomeComposition> {
-  return requestJson<HomeComposition>("/v1/home/composition", { signal });
+  const query = DEMO_BUSINESS_DATE ? `?business_date=${encodeURIComponent(DEMO_BUSINESS_DATE)}` : "";
+  return requestJson<HomeComposition>(`/v1/home/composition${query}`, { signal });
 }
 
 export function sendChatMessage(payload: ChatRequest, signal?: AbortSignal): Promise<ChatResponse> {
@@ -43,4 +46,3 @@ export function sendChatMessage(payload: ChatRequest, signal?: AbortSignal): Pro
     signal,
   });
 }
-

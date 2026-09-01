@@ -28,10 +28,10 @@ type InspectorProps = {
 };
 
 const modeLabels: Array<{ mode: InspectorMode; label: string }> = [
-  { mode: "context", label: "上下文" },
-  { mode: "evidence", label: "证据" },
-  { mode: "action", label: "行动" },
-  { mode: "approval", label: "草案" },
+  { mode: "context", label: "概览" },
+  { mode: "evidence", label: "依据" },
+  { mode: "action", label: "建议" },
+  { mode: "approval", label: "待审阅" },
 ];
 
 export function Inspector({
@@ -59,7 +59,7 @@ export function Inspector({
       >
         <header className="inspector-head">
           <div>
-            <span>JARVIS INSPECTOR</span>
+            <span>今日经营</span>
             <h2>{modeLabels.find((item) => item.mode === mode)?.label}</h2>
           </div>
           <button className="icon-control inspector-close" type="button" onClick={onClose} aria-label="收起检查器">
@@ -93,7 +93,7 @@ export function Inspector({
 
         <footer className="inspector-boundary">
           <LockKeyhole size={14} />
-          <span>M1.5 READ ONLY · NO AMAZON WRITE ACCESS</span>
+          <span>仅供审阅 · 不执行 Amazon 操作</span>
         </footer>
       </aside>
     </>
@@ -109,10 +109,10 @@ function ContextPanel({ composition, onSelectEvidence, onSelectAction }: {
   return (
     <>
       <section className="inspector-section context-overview">
-        <div className="inspector-section-title"><Store size={15} /><h3>当前工作集</h3></div>
+        <div className="inspector-section-title"><Store size={15} /><h3>当前范围</h3></div>
         <dl className="definition-list">
           <div><dt>店铺</dt><dd>Atlas Home Goods</dd></div>
-          <div><dt>站点</dt><dd>Amazon US</dd></div>
+          <div><dt>站点</dt><dd>美国站</dd></div>
           <div><dt>业务日期</dt><dd>{composition.business_date}</dd></div>
           <div><dt>经营目标</dt><dd>{objectiveLabel(composition.objective_profile)}</dd></div>
           <div><dt>首页状态</dt><dd>{stateLabel(composition.home_state)}</dd></div>
@@ -121,12 +121,12 @@ function ContextPanel({ composition, onSelectEvidence, onSelectAction }: {
       </section>
 
       <section className="inspector-section">
-        <div className="inspector-section-title"><Database size={15} /><h3>证据索引</h3><span>{composition.blocks.length}</span></div>
+        <div className="inspector-section-title"><Database size={15} /><h3>依据索引</h3><span>{composition.blocks.length}</span></div>
         <div className="inspector-link-list">
           {composition.blocks.slice(0, 4).map((item) => (
             <button type="button" key={item.block_id} onClick={() => onSelectEvidence(item)}>
               <span>{item.title}</span>
-              <small>{item.evidence_refs.length} references · {Math.round(item.confidence * 100)}%</small>
+              <small>{item.evidence_refs.length} 条引用 · 置信度 {Math.round(item.confidence * 100)}%</small>
             </button>
           ))}
         </div>
@@ -138,7 +138,7 @@ function ContextPanel({ composition, onSelectEvidence, onSelectAction }: {
           {composition.top_actions.map((item) => (
             <button type="button" key={item.action_id} onClick={() => onSelectAction(item)}>
               <span>{item.priority}. {item.title}</span>
-              <small>DRAFT · USER REVIEW REQUIRED</small>
+              <small>仅供审阅 · 需要人工确认</small>
             </button>
           ))}
         </div>
@@ -155,13 +155,13 @@ function EvidencePanel({ block }: { block: HomeBlock | null }) {
   return (
     <>
       <section className="inspector-section evidence-claim">
-        <div className="inspector-section-title"><BookOpen size={15} /><h3>正在检查的结论</h3></div>
+        <div className="inspector-section-title"><BookOpen size={15} /><h3>结论</h3></div>
         <strong>{block.title}</strong>
         <p>{payloadText(block, "summary") || payloadText(block, "finding") || block.display_reason}</p>
       </section>
 
       <section className="inspector-section">
-        <h3>观测值</h3>
+        <h3>数据</h3>
         <div className="evidence-metrics">
           {numericPayload(block).slice(0, 4).map(([key, value]) => (
             <div key={key}><span>{humanize(key)}</span><strong>{formatPayloadValue(key, value)}</strong></div>
@@ -171,7 +171,7 @@ function EvidencePanel({ block }: { block: HomeBlock | null }) {
       </section>
 
       <section className="inspector-section">
-        <h3>来源与口径</h3>
+        <h3>来源</h3>
         <dl className="definition-list definition-list-stacked">
           <div><dt>数据期间</dt><dd>{formatPeriod(block)}</dd></div>
           <div><dt>数据来源</dt><dd>{sources.map((source) => source.name).join(", ") || "未提供"}</dd></div>
@@ -179,12 +179,12 @@ function EvidencePanel({ block }: { block: HomeBlock | null }) {
           <div><dt>更新时间</dt><dd>{new Date(block.updated_at).toLocaleString("zh-CN")}</dd></div>
           <div><dt>归因窗口</dt><dd>{attribution || "NOT_APPLICABLE"}</dd></div>
           <div><dt>置信度</dt><dd>{Math.round(block.confidence * 100)}%</dd></div>
-          <div><dt>数据属性</dt><dd>{block.synthetic ? "SYNTHETIC · 模拟经营数据" : "LIVE"}</dd></div>
+          <div><dt>数据属性</dt><dd>{block.synthetic ? "模拟经营数据" : "真实数据"}</dd></div>
         </dl>
       </section>
 
       <section className="inspector-section">
-        <h3>限制与原始引用</h3>
+        <h3>限制</h3>
         <p className="limitation-copy">{block.limitations.length ? block.limitations.join("；") : "当前组件未声明额外限制。"}</p>
         <div className="raw-reference-list">
           {block.evidence_refs.map((item) => <code key={`${item.kind}:${item.reference_id}`}>{item.kind} · {item.reference_id}</code>)}
@@ -200,7 +200,7 @@ function ActionPanel({ action, block }: { action: ActionSummary | null; block: H
   return (
     <>
       <section className="inspector-section action-brief">
-        <span className="draft-status">DRAFT · REVIEW ONLY</span>
+        <span className="draft-status">仅供审阅</span>
         <h3>{action.title}</h3>
         <p>{action.reason}</p>
       </section>
@@ -211,18 +211,18 @@ function ActionPanel({ action, block }: { action: ActionSummary | null; block: H
           <div><dt>主要下行风险</dt><dd>归因尚未成熟或转化阻断未排除时，提前调整可能放大误判。</dd></div>
           <div><dt>置信度</dt><dd>{block ? `${Math.round(block.confidence * 100)}%` : "以关联证据为主"}</dd></div>
           <div><dt>观察期</dt><dd>完成只读核查后，并在相关归因窗口成熟时复盘。</dd></div>
-          <div><dt>审批要求</dt><dd>{action.requires_approval ? "需要用户审阅；M1.5 不执行批准动作" : "只读建议"}</dd></div>
+          <div><dt>审批要求</dt><dd>{action.requires_approval ? "需要用户审阅；当前不提供执行操作" : "只读建议"}</dd></div>
         </dl>
       </section>
       <section className="inspector-section">
-        <div className="inspector-section-title"><Activity size={15} /><h3>证据引用</h3></div>
+        <div className="inspector-section-title"><Activity size={15} /><h3>依据引用</h3></div>
         <div className="raw-reference-list">
           {action.evidence_refs.map((item) => <code key={`${item.kind}:${item.reference_id}`}>{item.kind} · {item.reference_id}</code>)}
         </div>
       </section>
       <div className="execution-boundary">
         <ShieldCheck size={17} />
-        <span><strong>NO AMAZON WRITE ACCESS</strong><small>此处没有批准或执行控件，草案只供人工审阅。</small></span>
+        <span><strong>不会修改 Amazon</strong><small>此处没有批准或执行控件，建议只供人工审阅。</small></span>
       </div>
     </>
   );
@@ -233,10 +233,10 @@ function ApprovalPanel({ composition, onSelectAction }: { composition: HomeCompo
   if (!actions.length) return <InspectorEmpty title="当前没有待审阅草案" />;
   return (
     <section className="approval-list" aria-label="待审阅草案">
-      <p>草案可以检查，但 M1.5 不提供批准或 Amazon 执行控件。</p>
+      <p>建议可以检查，但当前不提供批准或 Amazon 执行控件。</p>
       {actions.map((item) => (
         <button type="button" key={item.action_id} onClick={() => onSelectAction(item)}>
-          <span className="approval-priority">P{item.priority}</span>
+          <span className="approval-priority">{String(item.priority).padStart(2, "0")}</span>
           <span><strong>{item.title}</strong><small>{item.action_type}</small></span>
           <FileClock size={16} />
         </button>
@@ -272,7 +272,7 @@ function stateLabel(value: HomeComposition["home_state"]) {
 function actionImpact(actionType: string) {
   if (actionType.includes("AD")) return "Sponsored Products 搜索词、预算与竞价审阅";
   if (actionType.includes("ATTRIBUTION")) return "Sponsored Products 归因成熟度复盘";
-  return "Store-level 可售、价格、Listing 与转化诊断";
+  return "店铺可售、价格、Listing 与转化诊断";
 }
 
 function payloadText(block: HomeBlock, key: string) {
@@ -285,7 +285,19 @@ function numericPayload(block: HomeBlock): Array<[string, number]> {
 }
 
 function humanize(value: string) {
-  return value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
+  return ({
+    observed_value: "今日",
+    baseline_value: "比较基线",
+    delta_pct: "变化",
+    sessions: "流量",
+    orders: "订单",
+    units: "销量",
+    unit_session_percentage: "转化率",
+    spend: "广告花费",
+    ad_sales: "广告销售额",
+    acos: "ACOS",
+    current_value: "当前值",
+  } as Record<string, string>)[value] ?? value.replaceAll("_", " ");
 }
 
 function formatPayloadValue(key: string, value: number) {

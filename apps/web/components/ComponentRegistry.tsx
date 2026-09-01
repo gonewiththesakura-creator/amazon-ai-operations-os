@@ -28,17 +28,6 @@ type RegistryProps = {
 
 type Renderer = (props: RegistryProps) => React.ReactNode;
 
-const componentLabels: Partial<Record<ComponentType, string>> = {
-  executive_summary: "经营摘要",
-  critical_alert: "重大问题",
-  positive_signal: "最佳信号",
-  order_funnel: "订单漏斗",
-  ad_diagnosis: "广告诊断",
-  priority_action: "优先行动",
-  data_table: "确定性输出",
-  follow_up_question: "继续追问",
-};
-
 function text(payload: Record<string, unknown>, key: string, fallback = "—") {
   const value = payload[key];
   return typeof value === "string" ? value : fallback;
@@ -66,22 +55,18 @@ function BlockFrame({ block, icon, children, defaultEvidenceOpen, onOpenEvidence
       <header className="composition-block-head">
         <div className="composition-title">
           <span className="composition-icon">{icon}</span>
-          <div>
-            <span>{componentLabels[block.component_type] ?? "动态分析"}</span>
-            <h2 id={`${block.block_id}-heading`}>{block.title}</h2>
-          </div>
-        </div>
-        <div className="composition-status">
-          {block.synthetic && <span className="status-badge status-synthetic">SYNTHETIC</span>}
-          <span className="status-badge">置信度 {Math.round(block.confidence * 100)}%</span>
+          <h2 id={`${block.block_id}-heading`}>{humanizeNarrative(block.title)}</h2>
         </div>
       </header>
 
       {children}
 
       <div className="evidence-actions">
+        <div className="evidence-summary">
+          基于 {friendlySource(sourceNames)} · 更新于 {formatUpdatedAt(block.updated_at)}
+        </div>
         <details className="evidence-disclosure" open={defaultEvidenceOpen}>
-          <summary>来源与口径</summary>
+          <summary>展开来源与口径</summary>
           <dl>
             <div><dt>显示原因</dt><dd>{block.display_reason}</dd></div>
             <div><dt>数据期间</dt><dd>{block.data_period.start.slice(0, 10)} → {block.data_period.end.slice(0, 10)}</dd></div>
@@ -90,8 +75,8 @@ function BlockFrame({ block, icon, children, defaultEvidenceOpen, onOpenEvidence
           </dl>
           {block.limitations.length > 0 && <p>限制：{block.limitations.join("；")}</p>}
         </details>
-        <button className="evidence-open" type="button" onClick={() => onOpenEvidence(block)}>
-          检查证据 <ExternalLink size={13} />
+        <button className="evidence-open" type="button" aria-label={`查看依据：${block.title}`} onClick={() => onOpenEvidence(block)}>
+          查看依据 <ExternalLink size={13} />
         </button>
       </div>
     </section>
@@ -105,8 +90,8 @@ function ExecutiveSummary(props: RegistryProps) {
     <BlockFrame {...frameProps(props)} icon={<Sparkles size={17} />}>
       <div className="executive-summary-layout">
         <p>{text(block.payload, "summary")}</p>
-        <Metric label="Orders" value={<AnimatedNumber value={number(block.payload, "orders")} reducedMotion={reducedMotion} />} delta={delta} />
-        <Metric label="Sales" value={formatNumber(number(block.payload, "sales"), { style: "currency", currency: text(block.payload, "currency", "USD") })} />
+        <Metric label="订单" value={<AnimatedNumber value={number(block.payload, "orders")} reducedMotion={reducedMotion} />} delta={delta} />
+        <Metric label="销售额" value={formatNumber(number(block.payload, "sales"), { style: "currency", currency: text(block.payload, "currency", "USD") })} />
       </div>
     </BlockFrame>
   );
@@ -116,11 +101,11 @@ function CriticalAlert(props: RegistryProps) {
   const { block, reducedMotion } = props;
   return (
     <BlockFrame {...frameProps(props)} icon={<AlertTriangle size={17} />}>
-      <p className="block-narrative">{text(block.payload, "summary")}</p>
+      <p className="block-narrative">{humanizeNarrative(text(block.payload, "summary"))}</p>
       <div className="metric-line">
-        <Metric label="Observed" value={<AnimatedNumber value={number(block.payload, "observed_value")} reducedMotion={reducedMotion} />} />
-        <Metric label="Qualified baseline" value={formatNumber(number(block.payload, "baseline_value"), { maximumFractionDigits: 1 })} />
-        <Metric label="Delta" value={`${formatNumber(number(block.payload, "delta_pct"), { maximumFractionDigits: 1, signDisplay: "always" })}%`} tone="risk" />
+        <Metric label="今日" value={<AnimatedNumber value={number(block.payload, "observed_value")} reducedMotion={reducedMotion} />} />
+        <Metric label="比较基线" value={formatNumber(number(block.payload, "baseline_value"), { maximumFractionDigits: 1 })} />
+        <Metric label="变化" value={`${formatNumber(number(block.payload, "delta_pct"), { maximumFractionDigits: 1, signDisplay: "always" })}%`} tone="risk" />
       </div>
     </BlockFrame>
   );
@@ -148,9 +133,9 @@ function OrderFunnel(props: RegistryProps) {
   const orders = number(block.payload, "orders") ?? 0;
   const units = number(block.payload, "units") ?? 0;
   const stages = [
-    { label: "Sessions", value: sessions, width: 100 },
-    { label: "Orders", value: orders, width: sessions ? Math.max(8, (orders / sessions) * 100) : 8 },
-    { label: "Units", value: units, width: sessions ? Math.max(8, (units / sessions) * 100) : 8 },
+    { label: "流量", value: sessions, width: 100 },
+    { label: "订单", value: orders, width: sessions ? Math.max(8, (orders / sessions) * 100) : 8 },
+    { label: "销量", value: units, width: sessions ? Math.max(8, (units / sessions) * 100) : 8 },
   ];
   return (
     <BlockFrame {...frameProps(props)} icon={<Route size={17} />}>
@@ -163,7 +148,7 @@ function OrderFunnel(props: RegistryProps) {
           </div>
         ))}
       </div>
-      <p className="funnel-rate">Unit Session Percentage <strong>{formatNumber(number(block.payload, "unit_session_percentage"), { maximumFractionDigits: 2 })}%</strong></p>
+      <p className="funnel-rate">转化率 <strong>{formatNumber(number(block.payload, "unit_session_percentage"), { maximumFractionDigits: 2 })}%</strong></p>
     </BlockFrame>
   );
 }
@@ -172,12 +157,12 @@ function AdDiagnosis(props: RegistryProps) {
   const { block } = props;
   return (
     <BlockFrame {...frameProps(props)} icon={<Activity size={17} />}>
-      <p className="block-narrative">{text(block.payload, "finding")}</p>
+      <p className="block-narrative">{humanizeNarrative(text(block.payload, "finding"))}</p>
       <div className="metric-line metric-line-four">
-        <Metric label="Spend" value={formatNumber(number(block.payload, "spend"), { style: "currency", currency: "USD" })} />
-        <Metric label="Ad sales" value={formatNumber(number(block.payload, "ad_sales"), { style: "currency", currency: "USD" })} />
+        <Metric label="广告花费" value={formatNumber(number(block.payload, "spend"), { style: "currency", currency: "USD" })} />
+        <Metric label="广告销售额" value={formatNumber(number(block.payload, "ad_sales"), { style: "currency", currency: "USD" })} />
         <Metric label="ACOS" value={`${formatNumber(number(block.payload, "acos"), { maximumFractionDigits: 2 })}%`} />
-        <Metric label="Attribution" value={text(block.payload, "attribution_window")} />
+        <Metric label="归因窗口" value={humanizeAttribution(text(block.payload, "attribution_window"))} />
       </div>
     </BlockFrame>
   );
@@ -187,8 +172,8 @@ function PriorityAction(props: RegistryProps) {
   const { block, onOpenAction } = props;
   return (
     <BlockFrame {...frameProps(props)} icon={<ListChecks size={17} />}>
-      <p className="block-narrative">{text(block.payload, "summary")}</p>
-      <button className="primary-command" type="button" onClick={() => onOpenAction(block)}>审阅行动草案</button>
+      <p className="block-narrative">{humanizeNarrative(text(block.payload, "summary"))}</p>
+      <button className="primary-command" type="button" onClick={() => onOpenAction(block)}>查看建议</button>
     </BlockFrame>
   );
 }
@@ -199,7 +184,7 @@ function DataTable(props: RegistryProps) {
     <BlockFrame {...frameProps(props)} icon={<TableProperties size={17} />}>
       <div className="data-reference">
         <Database size={17} />
-        <div><strong>{text(block.payload, "summary")}</strong><code>{text(block.payload, "data_ref")}</code></div>
+        <div><strong>{humanizeNarrative(text(block.payload, "summary"))}</strong><span>原始数据引用已收纳至依据面板</span></div>
       </div>
     </BlockFrame>
   );
@@ -223,7 +208,7 @@ function Metric({ label, value, delta, tone }: { label: string; value: React.Rea
     <div className="metric-cell">
       <span>{label}</span>
       <strong className={resolvedTone ? `tone-${resolvedTone}` : ""}>{value}</strong>
-      {delta !== undefined && delta !== null && <small className={`tone-${resolvedTone}`}>{formatNumber(delta, { maximumFractionDigits: 1, signDisplay: "always" })}% vs baseline</small>}
+      {delta !== undefined && delta !== null && <small className={`tone-${resolvedTone}`}>较基线 {formatNumber(delta, { maximumFractionDigits: 1, signDisplay: "always" })}%</small>}
     </div>
   );
 }
@@ -273,7 +258,7 @@ export function UnsupportedComponentBlock({ block }: { block: HomeBlock }) {
   return (
     <section className="unsupported-block" role="status">
       <FileQuestion size={17} />
-      <div><strong>暂不支持此动态组件</strong><span>{block.component_type}@{block.component_version} · {block.block_id}</span></div>
+      <div><strong>这部分内容暂时无法展示</strong><span>原始引用仍然保留，可在依据面板中检查。</span></div>
     </section>
   );
 }
@@ -281,4 +266,28 @@ export function UnsupportedComponentBlock({ block }: { block: HomeBlock }) {
 export function ComponentRegistry(props: RegistryProps) {
   const Renderer = REGISTRY[props.block.component_type];
   return Renderer ? <Renderer {...props} /> : <UnsupportedComponentBlock block={props.block} />;
+}
+
+function friendlySource(sourceNames: string[]) {
+  if (sourceNames.some((name) => name.toLowerCase().includes("sp-api"))) return "Amazon SP 模拟数据";
+  if (sourceNames.some((name) => name.toLowerCase().includes("ads"))) return "Amazon Ads 模拟数据";
+  return sourceNames.length ? "已验证的模拟数据" : "已验证数据";
+}
+
+function formatUpdatedAt(value: string) {
+  return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+}
+
+function humanizeNarrative(value: string) {
+  return value
+    .replaceAll("Sponsored Products", "广告")
+    .replaceAll("Sessions", "流量")
+    .replaceAll("CVR", "转化率")
+    .replaceAll("PROVISIONAL", "归因尚未成熟")
+    .replaceAll("订单、流量 与 转化率 同时下降", "订单、流量与转化率同时下降")
+    .replaceAll("转化率 同时下降", "转化率同时下降");
+}
+
+function humanizeAttribution(value: string) {
+  return value === "14_DAY_CLICK" ? "14 日点击" : value.replaceAll("_", " ");
 }
