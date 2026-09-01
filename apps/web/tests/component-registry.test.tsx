@@ -7,13 +7,13 @@ import { homeBlock } from "./fixtures/home";
 describe("ComponentRegistry", () => {
   afterEach(() => cleanup());
 
-  it("renders a registered dynamic block and synthetic badge", () => {
+  it("renders a registered dynamic block with localized provenance", () => {
     renderRegistry(homeBlock());
 
     expect(screen.getByText("今日订单显著低于合格基线")).toBeInTheDocument();
-    expect(screen.getByText("SYNTHETIC")).toBeInTheDocument();
+    expect(screen.getByText(/基于 Amazon SP 模拟数据/)).toBeInTheDocument();
     expect(screen.getByText("45")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /检查证据/ })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "查看依据：今日订单显著低于合格基线" })).toBeEnabled();
   });
 
   it("fails safely and visibly for an unknown component", () => {
@@ -25,8 +25,9 @@ describe("ComponentRegistry", () => {
 
     renderRegistry(unknown);
 
-    expect(screen.getByText("暂不支持此动态组件")).toBeInTheDocument();
-    expect(screen.getByText(/future_component@9.9/)).toBeInTheDocument();
+    const fallback = screen.getByRole("status");
+    expect(fallback).toHaveTextContent("这部分内容暂时无法展示");
+    expect(fallback).toHaveTextContent("原始引用仍然保留，可在依据面板中检查");
   });
 });
 

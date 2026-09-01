@@ -59,7 +59,7 @@ describe("AppShell runtime", () => {
     getHome.mockReturnValue(new Promise(() => undefined));
     render(<AppShell />);
 
-    expect(screen.getByText("Jarvis 正在组织今日经营结论")).toBeInTheDocument();
+    expect(screen.getByText("正在整理今日经营判断")).toBeInTheDocument();
   });
 
   it("shows API failure without substituting fixture data", async () => {
@@ -70,12 +70,21 @@ describe("AppShell runtime", () => {
     expect(screen.getByText(/未使用浏览器内置假数据回退/)).toBeInTheDocument();
   });
 
-  it("renders API composition and persistent synthetic status", async () => {
+  it("renders the localized executive composition in the default warm-light theme", async () => {
     render(<AppShell />);
 
     expect(await screen.findByRole("heading", { name: "今日订单显著低于合格基线" })).toBeInTheDocument();
-    expect(screen.getAllByText(/SYNTHETIC/).length).toBeGreaterThan(1);
-    expect(screen.getByText("PROVISIONAL")).toBeInTheDocument();
+    const summary = screen.getByLabelText("今日经营摘要");
+    expect(summary).toHaveTextContent("订单");
+    expect(summary).toHaveTextContent("流量");
+    expect(summary).toHaveTextContent("转化率");
+    expect(summary).toHaveTextContent("ACOS");
+    expect(screen.getByText("归因尚未成熟")).toBeInTheDocument();
+    expect(screen.getByText("Demo data")).toBeInTheDocument();
+    expect(screen.getAllByText(/模拟数据/).length).toBeGreaterThan(1);
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
+    expect(JSON.parse(window.localStorage.getItem("amazon-ai-os:workspace-preferences:v1.6") ?? "{}"))
+      .toEqual(expect.objectContaining({ theme: "light" }));
   });
 
   it("submits chat and carries composition context into a follow-up", async () => {
