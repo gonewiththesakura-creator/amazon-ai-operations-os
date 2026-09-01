@@ -48,6 +48,7 @@ function chatResponse(runId: string, answer = "订单下降来自流量和转化
 
 describe("AppShell runtime", () => {
   beforeEach(() => {
+    window.localStorage.clear();
     getHome.mockResolvedValue(homeComposition());
     sendChat.mockResolvedValue(chatResponse("50000000-0000-4000-8000-000000000001"));
   });
@@ -58,7 +59,7 @@ describe("AppShell runtime", () => {
     getHome.mockReturnValue(new Promise(() => undefined));
     render(<AppShell />);
 
-    expect(screen.getByText("正在读取经营数据")).toBeInTheDocument();
+    expect(screen.getByText("Jarvis 正在组织今日经营结论")).toBeInTheDocument();
   });
 
   it("shows API failure without substituting fixture data", async () => {
@@ -66,7 +67,7 @@ describe("AppShell runtime", () => {
     render(<AppShell />);
 
     expect(await screen.findByText("Home API 不可用")).toBeInTheDocument();
-    expect(screen.getByText(/未使用本地假数据回退/)).toBeInTheDocument();
+    expect(screen.getByText(/未使用浏览器内置假数据回退/)).toBeInTheDocument();
   });
 
   it("renders API composition and persistent synthetic status", async () => {
@@ -82,7 +83,7 @@ describe("AppShell runtime", () => {
     render(<AppShell />);
     await screen.findByRole("heading", { name: "今日订单显著低于合格基线" });
 
-    await user.click(screen.getByRole("button", { name: "为什么今天订单下降？" }));
+    await user.click(screen.getByRole("button", { name: "今天为什么出单或没出单？" }));
     expect(await screen.findByText("订单下降来自流量和转化同时走弱。")).toBeInTheDocument();
     expect(sendChat).toHaveBeenNthCalledWith(
       1,
@@ -99,7 +100,7 @@ describe("AppShell runtime", () => {
     sendChat.mockResolvedValueOnce(
       chatResponse("50000000-0000-4000-8000-000000000002", "广告归因仍为 PROVISIONAL。"),
     );
-    await user.click(screen.getByRole("button", { name: "我现在应该先改广告吗？" }));
+    await user.click(screen.getAllByRole("button", { name: /我现在应该先改广告吗？/ })[0]);
     await screen.findByText("广告归因仍为 PROVISIONAL。");
     expect(sendChat).toHaveBeenNthCalledWith(
       2,

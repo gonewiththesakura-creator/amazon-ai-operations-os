@@ -1,16 +1,19 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ComponentRegistry } from "../components/ComponentRegistry";
 import type { ComponentType } from "../types/home";
 import { homeBlock } from "./fixtures/home";
 
 describe("ComponentRegistry", () => {
+  afterEach(() => cleanup());
+
   it("renders a registered dynamic block and synthetic badge", () => {
-    render(<ComponentRegistry block={homeBlock()} onAction={vi.fn()} />);
+    renderRegistry(homeBlock());
 
     expect(screen.getByText("今日订单显著低于合格基线")).toBeInTheDocument();
     expect(screen.getByText("SYNTHETIC")).toBeInTheDocument();
     expect(screen.getByText("45")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /检查证据/ })).toBeEnabled();
   });
 
   it("fails safely and visibly for an unknown component", () => {
@@ -20,9 +23,22 @@ describe("ComponentRegistry", () => {
       component_version: "9.9",
     });
 
-    render(<ComponentRegistry block={unknown} onAction={vi.fn()} />);
+    renderRegistry(unknown);
 
-    expect(screen.getByText("Unsupported component")).toBeInTheDocument();
+    expect(screen.getByText("暂不支持此动态组件")).toBeInTheDocument();
     expect(screen.getByText(/future_component@9.9/)).toBeInTheDocument();
   });
 });
+
+function renderRegistry(block: ReturnType<typeof homeBlock>) {
+  return render(
+    <ComponentRegistry
+      block={block}
+      defaultEvidenceOpen={false}
+      reducedMotion
+      onOpenAction={vi.fn()}
+      onOpenEvidence={vi.fn()}
+      onSubmitFollowUp={vi.fn()}
+    />,
+  );
+}
