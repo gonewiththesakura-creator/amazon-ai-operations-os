@@ -21,12 +21,14 @@ DAILY_HOME or USER_QUESTION
   -> validated HomeComposition or ChatResponse
 ```
 
-The Store Operations Agent invokes exactly four real tools:
+The Store Operations Agent decision flow invokes four real tools:
 
 1. `get_store_summary`
 2. `get_order_funnel`
 3. `compare_periods`
 4. `detect_anomalies`
+
+The Tool Gateway additionally implements three deterministic visualization reads: `get_metric_series`, `get_top_entities`, and `get_mix_breakdown`. `GET /v1/visualizations/home` composes their PostgreSQL outputs into a typed, evidence-backed package. Missing rows are omitted rather than zero-filled. This raises the implemented Gateway total to seven reads without adding a write capability.
 
 Other registered tools return `NOT_IMPLEMENTED`; they do not return placeholder success data.
 

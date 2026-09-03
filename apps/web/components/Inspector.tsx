@@ -12,6 +12,7 @@ import {
   Store,
 } from "lucide-react";
 import type { ActionSummary, HomeBlock, HomeComposition } from "../types/home";
+import type { VisualizationSpec } from "../types/visualization";
 
 export type InspectorMode = "context" | "evidence" | "action" | "approval";
 
@@ -21,6 +22,7 @@ type InspectorProps = {
   composition: HomeComposition | null;
   mode: InspectorMode;
   open: boolean;
+  visualization: VisualizationSpec | null;
   onClose: () => void;
   onModeChange: (mode: InspectorMode) => void;
   onSelectAction: (action: ActionSummary) => void;
@@ -40,12 +42,14 @@ export function Inspector({
   composition,
   mode,
   open,
+  visualization,
   onClose,
   onModeChange,
   onSelectAction,
   onSelectEvidence,
 }: InspectorProps) {
-  const evidenceCount = composition?.blocks.reduce((total, item) => total + item.evidence_refs.length, 0) ?? 0;
+  const evidenceCount = (composition?.blocks.reduce((total, item) => total + item.evidence_refs.length, 0) ?? 0)
+    + (visualization?.evidence_refs?.length ?? 0);
   const approvalCount = composition?.top_actions.filter((item) => item.requires_approval).length ?? 0;
 
   return (
@@ -86,7 +90,9 @@ export function Inspector({
 
         <div className="inspector-body">
           {mode === "context" && <ContextPanel composition={composition} onSelectEvidence={onSelectEvidence} onSelectAction={onSelectAction} />}
-          {mode === "evidence" && <EvidencePanel block={block ?? composition?.blocks[0] ?? null} />}
+          {mode === "evidence" && (visualization
+            ? <VisualizationEvidencePanel visualization={visualization} />
+            : <EvidencePanel block={block ?? composition?.blocks[0] ?? null} />)}
           {mode === "action" && <ActionPanel action={action ?? composition?.top_actions[0] ?? null} block={block} />}
           {mode === "approval" && <ApprovalPanel composition={composition} onSelectAction={onSelectAction} />}
         </div>
@@ -96,6 +102,45 @@ export function Inspector({
           <span>仅供审阅 · 不执行 Amazon 操作</span>
         </footer>
       </aside>
+    </>
+  );
+}
+
+function VisualizationEvidencePanel({ visualization }: { visualization: VisualizationSpec }) {
+  const metrics = visualizationMetrics(visualization);
+  return (
+    <>
+      <section className="inspector-section evidence-claim">
+        <div className="inspector-section-title"><BookOpen size={15} /><h3>结论</h3></div>
+        <strong>{visualization.title}</strong>
+        <p>{visualization.subtitle ?? "该图仅呈现确定性工具返回的数据点。"}</p>
+      </section>
+
+      <section className="inspector-section">
+        <h3>数据</h3>
+        <div className="evidence-metrics">
+          {metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
+        </div>
+      </section>
+
+      <section className="inspector-section">
+        <h3>来源</h3>
+        <dl className="definition-list definition-list-stacked">
+          <div><dt>数据期间</dt><dd>{visualization.period}</dd></div>
+          <div><dt>数据来源</dt><dd>{visualization.data_source}</dd></div>
+          <div><dt>更新时间</dt><dd>{visualization.updated_at ? new Date(visualization.updated_at).toLocaleString("zh-CN") : "未提供"}</dd></div>
+          <div><dt>置信度</dt><dd>{visualization.confidence === undefined ? "未提供" : `${Math.round(visualization.confidence * 100)}%`}</dd></div>
+          <div><dt>数据属性</dt><dd>{visualization.synthetic ? "模拟经营数据" : "已连接数据"}</dd></div>
+        </dl>
+      </section>
+
+      <section className="inspector-section">
+        <h3>限制</h3>
+        <p className="limitation-copy">{visualization.limitations?.length ? visualization.limitations.join("；") : "当前可视化未声明额外限制。"}</p>
+        <div className="raw-reference-list">
+          {visualization.evidence_refs?.map((item) => <code key={`${item.kind}:${item.reference_id}`}>{item.kind} · {item.reference_id}</code>)}
+        </div>
+      </section>
     </>
   );
 }
@@ -308,4 +353,29 @@ function formatPayloadValue(key: string, value: number) {
 
 function formatPeriod(block: HomeBlock) {
   return `${block.data_period.start.slice(0, 10)} → ${block.data_period.end.slice(0, 10)}`;
+}
+
+function visualizationMetrics(visualization: VisualizationSpec): Array<[string, string]> {
+  if (visualization.type === "LINE" || visualization.type === "SPARKLINE") {
+    const values = visualization.series.points.map((point) => point.value);
+    return [
+      ["最新值", formatVisualizationValue(values.at(-1) ?? 0, visualization.series.unit)],
+      ["最低值", formatVisualizationValue(Math.min(...values), visualization.series.unit)],
+      ["最高值", formatVisualizationValue(Math.max(...values), visualization.series.unit)],
+      ["数据点", String(values.length)],
+    ];
+  }
+  if (visualization.type === "BAR" || visualization.type === "DONUT") {
+    const total = visualization.series.values.reduce((sum, item) => sum + item.value, 0);
+    return [["分类数", String(visualization.series.values.length)], ["合计", formatVisualizationValue(total, visualization.series.unit)]];
+  }
+  return [["当前值", formatVisualizationValue(visualization.value, visualization.unit)], ["上限", formatVisualizationValue(visualization.max, visualization.unit)]];
+}
+
+function formatVisualizationValue(value: number, unit: string) {
+  if (unit === "USD" || unit === "currency") return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  if (unit === "percent" || unit === "PERCENT" || unit === "%") return `${new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 }).format(value)}%`;
+  if (unit === "rank") return `#${Math.round(value)}`;
+  if (unit === "days") return `${Math.round(value)} 天`;
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(value);
 }

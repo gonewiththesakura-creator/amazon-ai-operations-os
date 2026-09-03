@@ -139,7 +139,7 @@ flowchart LR
 - 今日前三项行动、重大问题、最佳经营信号和待审批事项。
 - 数据更新时间、来源摘要、置信度和可展开分析过程。
 
-Supervisor 只能从注册组件中选择：`executive_summary`、`priority_action`、`critical_alert`、`positive_signal`、`metric_card`、`line_chart`、`comparison_chart`、`data_table`、`order_funnel`、`ad_diagnosis`、`keyword_opportunity`、`competitor_change`、`inventory_risk`、`profit_simulation`、`product_opportunity`、`policy_alert`、`news_impact`、`experiment_result`、`approval_request`、`follow_up_question`。每个块必须包含展示理由、证据引用、数据更新时间、置信度和审批需求。
+Supervisor 只能从注册组件中选择：`executive_summary`、`priority_action`、`critical_alert`、`positive_signal`、`metric_card`、`line_chart`、`comparison_chart`、`data_table`、`order_funnel`、`ad_diagnosis`、`keyword_opportunity`、`competitor_change`、`inventory_risk`、`profit_simulation`、`product_opportunity`、`policy_alert`、`news_impact`、`experiment_result`、`approval_request`、`follow_up_question`。每个块必须包含展示理由、证据引用、数据更新时间、置信度和审批需求。Supervisor 可以选择注册的可视化类型与优先级，但不得生成数值、插值或补零；所有图表点必须来自带证据与 provenance 的确定性工具。
 
 首页必须支持四种同系统、不同排序的完整状态：
 

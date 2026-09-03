@@ -17,6 +17,12 @@
   --risk: #a86355;
   --risk-soft: #f1e3df;
   --info: #6f7f86;
+  --chart-moss: #6f7868;
+  --chart-bronze: #a58b63;
+  --chart-slate: #6f7f86;
+  --chart-clay: #a86355;
+  --chart-neutral: #9a948a;
+  --chart-grid: #ded9d0;
   --shadow-command: 0 12px 36px rgba(61, 56, 47, 0.09), 0 2px 8px rgba(61, 56, 47, 0.04);
   --shadow-overlay: 0 22px 60px rgba(56, 51, 43, 0.16);
   --font-sans: Geist, "Noto Sans SC", "Microsoft YaHei", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -50,6 +56,12 @@ html[data-theme="dark"] {
   --risk: #c17c6e;
   --risk-soft: #4b342f;
   --info: #92a4aa;
+  --chart-moss: #9ba493;
+  --chart-bronze: #c1a97f;
+  --chart-slate: #92a4aa;
+  --chart-clay: #c17c6e;
+  --chart-neutral: #8f8b82;
+  --chart-grid: #3b3d37;
   --shadow-command: 0 12px 38px rgba(0, 0, 0, 0.26);
   --shadow-overlay: 0 22px 60px rgba(0, 0, 0, 0.42);
   color-scheme: dark;
@@ -75,6 +87,12 @@ html[data-theme="dark"] {
     --risk: #c17c6e;
     --risk-soft: #4b342f;
     --info: #92a4aa;
+    --chart-moss: #9ba493;
+    --chart-bronze: #c1a97f;
+    --chart-slate: #92a4aa;
+    --chart-clay: #c17c6e;
+    --chart-neutral: #8f8b82;
+    --chart-grid: #3b3d37;
     --shadow-command: 0 12px 38px rgba(0, 0, 0, 0.26);
     --shadow-overlay: 0 22px 60px rgba(0, 0, 0, 0.42);
     color-scheme: dark;

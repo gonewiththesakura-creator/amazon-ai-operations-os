@@ -1,5 +1,7 @@
 # MVP 验收标准
 
+M1.8 可视化验收由 [`16-m1.8-visual-analytics.md`](16-m1.8-visual-analytics.md) 定义，并作为本文标准的增量要求。
+
 ## 1. 验收定义
 
 MVP 只有在“数据经过真实管道进入数据库、指标可复算、Supervisor/Agent 通过受控工具形成诊断、首页由有效 HomeComposition 动态组合、建议可审批、无外部写能力”同时成立时才通过。页面从静态 JSON 导入固定卡片、为七个场景分别硬编码页面、或让 LLM 直接编造 JSON 数值均不算完成。

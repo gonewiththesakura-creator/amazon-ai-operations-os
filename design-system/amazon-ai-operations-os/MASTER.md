@@ -6,7 +6,7 @@ This concise authority summary is normalized to [`DESIGN.md`](../../../DESIGN.md
 
 `ZEN EXECUTIVE` (`m1-6-zen-executive-f46862fe`) is a warm, quiet, editorial operating office for an AI COO. The interface should feel refined and immediately actionable: one human judgment first, then typographic metrics, ranked actions, analysis, and evidence. Jarvis is a manager who has already done the work, not a robot mascot or technology spectacle.
 
-M1.7 preserves this visual direction and adds a presentation contract: one judgment, up to four stage-aware metrics, up to three actions, six fixed operating domains, and at most two default-expanded domains. Evidence and raw provenance live only in Inspector; full conversation history lives in its drawer.
+M1.8 preserves this direction and adds deterministic visual analytics: one judgment, up to four stage-aware metrics with source-backed sparklines, up to three actions, and six fixed domains. Exactly one priority domain auto-expands; users may open two. Collapsed rows show two metrics. Expanded domains allow one primary chart, one secondary chart, one Jarvis insight, and one action. No source data means no chart.
 
 Warm light is the default. Dark and system-dark preserve the same semantic hierarchy; they do not restore the retired graphite-and-mint identity.
 
@@ -26,6 +26,8 @@ Warm light is the default. Dark and system-dark preserve the same semantic hiera
 | Champagne bronze | `#a58b63` | `#c1a97f` |
 | Clay risk | `#a86355` | `#c17c6e` |
 | Slate information | `#6f7f86` | `#92a4aa` |
+| Chart neutral | `#9a948a` | `#8f8b82` |
+| Chart grid | `#ded9d0` | `#3b3d37` |
 
 Use Noto Serif SC and its serif fallbacks only for the daily judgment, major statements, rank numerals, and exceptional values. Use Geist, Noto Sans SC, and system sans for all working UI. Keep zero letter spacing, an 11px minimum, and tabular numerals.
 
@@ -46,6 +48,8 @@ Use Noto Serif SC and its serif fallbacks only for the daily judgment, major sta
 - The inspector is warm paper with an underline tab state and contains raw references, limits, and deep evidence.
 - The composer is elevated paper with a light command shadow and the only solid moss command.
 - Use bare Lucide icons; colored icon tiles are exceptional.
+- Use transparent native-SVG charts with semantic moss, bronze, slate, clay, and neutral roles; heavy charts mount only after domain expansion.
+- Chart points are source-owned, keyboard accessible, and never interpolated or zero-filled by Jarvis.
 
 ## Rejections
 

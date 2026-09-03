@@ -111,3 +111,99 @@ def test_store_summary_is_deterministic() -> None:
     assert result.data_period.start.date().isoformat() == "2026-08-31"
     assert result.output["orders_delta_pct"] == -55.0
     assert result.output["sessions_delta_pct"] == -24.0
+
+
+@pytest.mark.parametrize(
+    ("tool_name", "extra_arguments"),
+    (
+        ("get_metric_series", {"metric": "orders", "scope": "STORE", "lookback_days": 30}),
+        (
+            "get_top_entities",
+            {
+                "metric": "sales",
+                "scope": "STORE",
+                "entity_type": "ASIN",
+                "lookback_days": 30,
+                "limit": 5,
+            },
+        ),
+        (
+            "get_mix_breakdown",
+            {
+                "metric": "sales",
+                "scope": "STORE",
+                "entity_type": "ASIN",
+                "lookback_days": 30,
+                "max_slices": 5,
+            },
+        ),
+    ),
+)
+def test_visualization_tools_return_deterministic_evidence_backed_payloads(
+    tool_name: str, extra_arguments: dict[str, object]
+) -> None:
+    gateway, audit = build_gateway()
+
+    result = gateway.execute(
+        agent_id="store_operations",
+        tool_name=tool_name,
+        arguments={**arguments(), **extra_arguments},
+    )
+
+    assert result.status is ToolStatus.SUCCEEDED
+    assert result.synthetic is True
+    assert result.evidence_refs
+    assert result.data_period is not None
+    assert result.data_period.end.isoformat().startswith("2026-09-01T06:59:59")
+    expected_metric = "orders" if tool_name == "get_metric_series" else "sales"
+    assert result.output["metric"] == expected_metric
+    assert audit.events[-1]["event_type"] == "TOOL_SUCCEEDED"
+
+
+def test_metric_series_preserves_only_repository_points() -> None:
+    gateway, _ = build_gateway()
+
+    result = gateway.execute(
+        agent_id="store_operations",
+        tool_name="get_metric_series",
+        arguments={**arguments(), "metric": "orders", "scope": "STORE", "lookback_days": 30},
+    )
+
+    assert result.output["points"] == [
+        {"period": "2026-08-29", "value": 40.0},
+        {"period": "2026-08-30", "value": 43.0},
+        {"period": "2026-08-31", "value": 45.0},
+    ]
+    assert result.data_period is not None
+    assert result.data_period.start.date().isoformat() == "2026-08-29"
+
+
+def test_visualization_tool_limits_are_validated() -> None:
+    gateway, audit = build_gateway()
+
+    with pytest.raises(ToolInputError):
+        gateway.execute(
+            agent_id="store_operations",
+            tool_name="get_metric_series",
+            arguments={**arguments(), "metric": "orders", "lookback_days": 91},
+        )
+
+    assert audit.events[-1]["event_type"] == "TOOL_INPUT_REJECTED"
+
+
+def test_mix_breakdown_is_bounded_and_uses_other_slice() -> None:
+    gateway, _ = build_gateway()
+
+    result = gateway.execute(
+        agent_id="store_operations",
+        tool_name="get_mix_breakdown",
+        arguments={**arguments(), "metric": "sales", "max_slices": 5},
+    )
+
+    assert len(result.output["categories"]) == 5
+    assert result.output["categories"][-1] == {
+        "label": "Other",
+        "value": 3.0,
+        "share_pct": 3.0,
+        "entity_id": None,
+    }

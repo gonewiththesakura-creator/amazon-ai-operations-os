@@ -59,7 +59,9 @@
 .domain-detail {
   padding: 0 0 18px 38px;
   border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  animation: domain-detail-reveal 200ms ease-out both;
 }
+@keyframes domain-detail-reveal { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
 .domain-detail .composition-block:last-of-type { border-bottom: 0; }
 .domain-detail .composition-block { padding-top: 22px; }
 
@@ -70,6 +72,9 @@
   gap: 18px;
   padding: 18px 0 2px;
 }
+
+@media (prefers-reduced-motion: reduce) { .domain-detail { animation: none; } }
+html[data-motion="reduced"] .domain-detail { animation: none; }
 .domain-empty p,
 .domain-limit { margin: 0; color: var(--text-subtle); font-size: 11px; line-height: 1.6; }
 .domain-empty button {

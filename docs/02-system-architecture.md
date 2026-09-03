@@ -88,7 +88,7 @@ flowchart TB
 
 | 层 | MVP 选择 | 职责 |
 |---|---|---|
-| Web | Next.js、TypeScript、ECharts | GPT 式工作空间、HomeComposition 渲染、工作台、下钻、草案与复盘 |
+| Web | Next.js、TypeScript、原生 SVG | GPT 式工作空间、HomeComposition 渲染、按需可视化、下钻、草案与复盘；重图表仅在经营域展开后加载 |
 | API | Python FastAPI、Pydantic | 领域 API、认证授权、查询、审批状态机 |
 | Worker | Python worker | 指标、检测、文档提取、Agent 运行与异步分析 |
 | 调度 | Prefect | 小时巡检、每日全量、事件任务、回填、重算、重试 |

@@ -13,11 +13,14 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { getHomeComposition, sendChatMessage } from "../lib/api";
+import { getHomeComposition, getHomeVisualizations, sendChatMessage } from "../lib/api";
 import type { ChatContext } from "../types/chat";
 import type { ActionSummary, HomeBlock, HomeComposition } from "../types/home";
-import { buildHomeViewModel } from "../view-models/home";
+import type { VisualizationSpec } from "../types/visualization";
+import { buildHomeViewModel, hasUsableHomeContent } from "../view-models/home";
 import type { OperatingDomainId } from "../view-models/operating-domains";
+import { buildCompositionVisualizationSpecs, buildHomeVisualizationSpecs, buildMetricSparklineSpec } from "../view-models/visualizations";
+import { Sparkline } from "./charts/Sparkline";
 import { OperatingDomains } from "./OperatingDomains";
 import { ConversationDrawer, HelpDrawer, SettingsDrawer, type ConversationMessage, type WorkspacePreferences } from "./WorkspaceDrawers";
 import { Inspector, type InspectorMode } from "./Inspector";
@@ -42,10 +45,12 @@ export default function AppShell() {
   const [inspectorMode, setInspectorMode] = useState<InspectorMode>("context");
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const [selectedVisualization, setSelectedVisualization] = useState<VisualizationSpec | null>(null);
   const [openDrawer, setOpenDrawer] = useState<OpenDrawer>(null);
   const [accountOpen, setAccountOpen] = useState(false);
   const [input, setInput] = useState("");
   const [composition, setComposition] = useState<HomeComposition | null>(null);
+  const [visualizations, setVisualizations] = useState<VisualizationSpec[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [refreshing, setRefreshing] = useState(false);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -60,9 +65,16 @@ export default function AppShell() {
     try {
       const result = await getHomeComposition(signal);
       setComposition(result);
-      setLoadState("success");
+      setLoadState(hasUsableHomeContent(result) ? "success" : "empty");
       setSelectedBlockId((current) => current ?? result.blocks[0]?.block_id ?? null);
       setSelectedActionId((current) => current ?? result.top_actions[0]?.action_id ?? null);
+      const compositionVisualizations = buildCompositionVisualizationSpecs(result);
+      setVisualizations(compositionVisualizations);
+      void getHomeVisualizations(signal)
+        .then((response) => setVisualizations([...compositionVisualizations, ...buildHomeVisualizationSpecs(response)]))
+        .catch((error) => {
+          if (!(error instanceof DOMException && error.name === "AbortError")) setVisualizations(compositionVisualizations);
+        });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       setLoadState("error");
@@ -175,13 +187,22 @@ export default function AppShell() {
 
   function openEvidence(block: HomeBlock) {
     rememberInspectorOpener();
+    setSelectedVisualization(null);
     setSelectedBlockId(block.block_id);
+    setInspectorMode("evidence");
+    setInspectorOpen(true);
+  }
+
+  function openVisualizationEvidence(visualization: VisualizationSpec) {
+    rememberInspectorOpener();
+    setSelectedVisualization(visualization);
     setInspectorMode("evidence");
     setInspectorOpen(true);
   }
 
   function openAction(action: ActionSummary, block?: HomeBlock | null) {
     rememberInspectorOpener();
+    setSelectedVisualization(null);
     const relatedBlock = block ?? findActionEvidenceBlock(action, composition?.blocks ?? []);
     setSelectedActionId(action.action_id);
     setSelectedBlockId(relatedBlock?.block_id ?? null);
@@ -297,7 +318,7 @@ export default function AppShell() {
               <RuntimeState title="Home API 不可用" body="未使用浏览器内置假数据回退。请启动 FastAPI 与 PostgreSQL 后重试。" action={() => void loadHome()} />
             )}
             {loadState === "empty" && (
-              <RuntimeState title="当前没有可展示内容" body="API 返回了有效 HomeComposition，但注册组件列表为空。" action={() => void loadHome()} />
+              <RuntimeState title="当前没有可展示内容" body="API 返回了有效 HomeComposition，但没有可用的指标、行动或经营域信号。" action={() => void loadHome()} />
             )}
             {composition && homeView && loadState === "success" && (
               <>
@@ -313,7 +334,16 @@ export default function AppShell() {
                     {homeView.metrics.map((metric) => (
                       <div className="metric-strip-item" key={metric.label}>
                         <span>{metric.label}</span>
-                        <strong>{metric.value}</strong>
+                        <div className="metric-value-row">
+                          <strong>{metric.value}</strong>
+                          {buildMetricSparklineSpec(metric.label, visualizations) && (
+                            <Sparkline
+                              spec={buildMetricSparklineSpec(metric.label, visualizations)!}
+                              reducedMotion={preferences.reducedMotion}
+                              tone={metric.tone}
+                            />
+                          )}
+                        </div>
                         {metric.note && <small className={metric.tone ? `tone-${metric.tone}` : ""}>{metric.note}</small>}
                       </div>
                     ))}
@@ -342,8 +372,10 @@ export default function AppShell() {
                   domains={homeView.domains}
                   expandedIds={expandedDomainIds}
                   reducedMotion={preferences.reducedMotion}
+                  visualizations={visualizations}
                   onToggle={toggleDomain}
                   onOpenEvidence={openEvidence}
+                  onOpenVisualizationEvidence={openVisualizationEvidence}
                   onOpenAction={openActionForBlock}
                   onSubmitFollowUp={(question) => void submitQuestion(question)}
                 />
@@ -392,6 +424,7 @@ export default function AppShell() {
           composition={composition}
           mode={inspectorMode}
           open={inspectorOpen}
+          visualization={selectedVisualization}
           onClose={closeInspector}
           onModeChange={setInspectorMode}
           onSelectAction={(action) => openAction(action)}

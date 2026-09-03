@@ -1,5 +1,6 @@
 import type { ChatRequest, ChatResponse } from "../types/chat";
 import type { HomeComposition } from "../types/home";
+import type { HomeVisualizationsResponse } from "../types/visualization";
 
 export const DEMO_TENANT_ID =
   process.env.NEXT_PUBLIC_DEMO_TENANT_ID ?? "00000000-0000-0000-0000-000000000001";
@@ -37,6 +38,12 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 export function getHomeComposition(signal?: AbortSignal): Promise<HomeComposition> {
   const query = DEMO_BUSINESS_DATE ? `?business_date=${encodeURIComponent(DEMO_BUSINESS_DATE)}` : "";
   return requestJson<HomeComposition>(`/v1/home/composition${query}`, { signal });
+}
+
+export function getHomeVisualizations(signal?: AbortSignal): Promise<HomeVisualizationsResponse> {
+  const query = new URLSearchParams({ lookback_days: "30" });
+  if (DEMO_BUSINESS_DATE) query.set("business_date", DEMO_BUSINESS_DATE);
+  return requestJson<HomeVisualizationsResponse>(`/v1/visualizations/home?${query.toString()}`, { signal });
 }
 
 export function sendChatMessage(payload: ChatRequest, signal?: AbortSignal): Promise<ChatResponse> {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ActionSummary, HomeBlock } from "../types/home";
-import { buildHomeViewModel } from "../view-models/home";
+import { buildHomeViewModel, hasUsableHomeContent } from "../view-models/home";
 import { homeBlock, homeComposition } from "./fixtures/home";
 
 describe("HomeViewModel", () => {
@@ -48,6 +48,11 @@ describe("HomeViewModel", () => {
     expect(ads.quickQuestions).toContain("哪些搜索词最浪费？");
     expect(inventory.quickQuestions).toContain("还能卖多少天？");
     expect(ads.quickQuestions).not.toEqual(inventory.quickQuestions);
+  });
+
+  it("treats a valid composition without metrics, actions, or domain signals as empty", () => {
+    expect(hasUsableHomeContent(homeComposition({ blocks: [], top_actions: [] }))).toBe(false);
+    expect(hasUsableHomeContent(homeComposition())).toBe(true);
   });
 });
 

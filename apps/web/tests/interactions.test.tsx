@@ -2,16 +2,19 @@ import { cleanup, render, screen, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AppShell from "../components/AppShell";
-import { getHomeComposition, sendChatMessage } from "../lib/api";
+import { getHomeComposition, getHomeVisualizations, sendChatMessage } from "../lib/api";
 import type { ChatResponse } from "../types/chat";
 import { homeComposition } from "./fixtures/home";
+import { homeVisualizations } from "./fixtures/visualizations";
 
 vi.mock("../lib/api", () => ({
   getHomeComposition: vi.fn(),
+  getHomeVisualizations: vi.fn(),
   sendChatMessage: vi.fn(),
 }));
 
 const getHome = vi.mocked(getHomeComposition);
+const getVisualizations = vi.mocked(getHomeVisualizations);
 const sendChat = vi.mocked(sendChatMessage);
 
 const chatResponse: ChatResponse = {
@@ -28,6 +31,7 @@ describe("M1.7 interaction contract", () => {
   beforeEach(() => {
     window.localStorage.clear();
     getHome.mockResolvedValue(homeComposition());
+    getVisualizations.mockResolvedValue(homeVisualizations());
     sendChat.mockResolvedValue(chatResponse);
   });
 
@@ -89,7 +93,7 @@ describe("M1.7 interaction contract", () => {
     render(<AppShell />);
     await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
-    await user.click(await screen.findByRole("button", { name: "查看依据：订单漏斗" }));
+    await user.click(await screen.findByRole("button", { name: "查看依据：订单 · 30D" }));
     expect(screen.getByRole("tab", { name: /依据/ })).toHaveAttribute("aria-selected", "true");
     expect(within(screen.getByLabelText("上下文与证据检查器")).getByRole("heading", { name: "结论" })).toBeInTheDocument();
 
@@ -107,7 +111,7 @@ describe("M1.7 interaction contract", () => {
     render(<AppShell />);
     await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
-    await user.click(await screen.findByRole("button", { name: "查看依据：订单漏斗" }));
+    await user.click(await screen.findByRole("button", { name: "查看依据：订单 · 30D" }));
     await user.click(screen.getByRole("button", { name: /复核 SP 搜索词与预算/ }));
     let inspector = screen.getByLabelText("上下文与证据检查器");
     expect(within(inspector).getByText("广告归因尚未成熟。")).toBeInTheDocument();
@@ -129,7 +133,7 @@ describe("M1.7 interaction contract", () => {
     render(<AppShell />);
     await screen.findByRole("heading", { name: "订单、流量与转化率同时下降。" });
 
-    const evidenceButton = await screen.findByRole("button", { name: "查看依据：订单漏斗" });
+    const evidenceButton = await screen.findByRole("button", { name: "查看依据：订单 · 30D" });
     await user.click(evidenceButton);
     const inspector = screen.getByLabelText("上下文与证据检查器");
     expect(inspector).not.toHaveAttribute("inert");

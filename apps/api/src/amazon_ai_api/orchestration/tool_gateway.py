@@ -4,12 +4,17 @@ from datetime import datetime
 from typing import Any, Callable
 from uuid import NAMESPACE_URL, UUID, uuid5
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from amazon_ai_api.db.repositories.store_metrics import StoreMetricsRepository
 from amazon_ai_api.models.home import EvidenceKind, EvidenceReference
 from amazon_ai_api.models.provenance import DataPeriod
 from amazon_ai_api.models.tools import StoreToolInput, ToolResult, ToolStatus
+from amazon_ai_api.models.visualizations import (
+    MetricSeriesToolInput,
+    MixBreakdownToolInput,
+    TopEntitiesToolInput,
+)
 from amazon_ai_api.orchestration.audit import AuditWriter
 from amazon_ai_api.registries.tools import ToolRegistry
 from amazon_ai_api.services.analytics.store import (
@@ -31,7 +36,15 @@ class ToolInputError(ValueError):
 
 class ToolGateway:
     IMPLEMENTED = frozenset(
-        {"get_store_summary", "get_order_funnel", "compare_periods", "detect_anomalies"}
+        {
+            "get_store_summary",
+            "get_order_funnel",
+            "compare_periods",
+            "detect_anomalies",
+            "get_metric_series",
+            "get_top_entities",
+            "get_mix_breakdown",
+        }
     )
 
     def __init__(
@@ -51,6 +64,14 @@ class ToolGateway:
             "get_order_funnel": self._get_order_funnel,
             "compare_periods": self._compare_periods,
             "detect_anomalies": self._detect_anomalies,
+            "get_metric_series": self._get_metric_series,
+            "get_top_entities": self._get_top_entities,
+            "get_mix_breakdown": self._get_mix_breakdown,
+        }
+        self._input_models: dict[str, type[BaseModel]] = {
+            "get_metric_series": MetricSeriesToolInput,
+            "get_top_entities": TopEntitiesToolInput,
+            "get_mix_breakdown": MixBreakdownToolInput,
         }
 
     def execute(
@@ -76,7 +97,8 @@ class ToolGateway:
             )
             raise ToolAuthorizationError(f"agent {agent_id} is not authorized for tool {tool_name}")
         try:
-            validated = StoreToolInput.model_validate(arguments)
+            input_model = self._input_models.get(tool_name, StoreToolInput)
+            validated = input_model.model_validate(arguments)
         except ValidationError as exc:
             self._audit.write_tool_event(
                 tenant_id=tenant_id,
@@ -112,7 +134,10 @@ class ToolGateway:
         output = {
             key: value for key, value in handler_output.items() if not key.startswith("_")
         }
-        start, end = self._clock.business_day_period(validated.business_date)
+        period_start = handler_output.get("_period_start", validated.business_date)
+        period_end = handler_output.get("_period_end", validated.business_date)
+        start = self._clock.business_day_period(period_start)[0]
+        end = self._clock.business_day_period(period_end)[1]
         evidence = EvidenceReference(
             kind=EvidenceKind.TOOL_OUTPUT,
             reference_id=f"tool:{tool_name}:{call_id}",
@@ -198,6 +223,59 @@ class ToolGateway:
             **result.model_dump(mode="json"),
             "ad_signals": ad_result.model_dump(mode="json"),
             **metadata,
+        }
+
+    def _get_metric_series(self, values: MetricSeriesToolInput) -> dict[str, Any]:
+        data = self._repository.get_metric_series(
+            tenant_id=values.tenant_id,
+            marketplace=values.marketplace,
+            business_date=values.business_date,
+            metric=values.metric,
+            lookback_days=values.lookback_days,
+        )
+        return {
+            **data.payload.model_dump(mode="json"),
+            **self._visualization_metadata(data),
+        }
+
+    def _get_top_entities(self, values: TopEntitiesToolInput) -> dict[str, Any]:
+        data = self._repository.get_top_entities(
+            tenant_id=values.tenant_id,
+            marketplace=values.marketplace,
+            business_date=values.business_date,
+            metric=values.metric,
+            lookback_days=values.lookback_days,
+            limit=values.limit,
+        )
+        return {
+            **data.payload.model_dump(mode="json"),
+            **self._visualization_metadata(data),
+        }
+
+    def _get_mix_breakdown(self, values: MixBreakdownToolInput) -> dict[str, Any]:
+        data = self._repository.get_mix_breakdown(
+            tenant_id=values.tenant_id,
+            marketplace=values.marketplace,
+            business_date=values.business_date,
+            metric=values.metric,
+            lookback_days=values.lookback_days,
+            max_slices=values.max_slices,
+        )
+        return {
+            **data.payload.model_dump(mode="json"),
+            **self._visualization_metadata(data),
+        }
+
+    @staticmethod
+    def _visualization_metadata(data: Any) -> dict[str, Any]:
+        return {
+            "_source": data.source_names,
+            "_updated_at": data.collected_at.isoformat(),
+            "_confidence": data.confidence,
+            "_limitations": data.limitations,
+            "_synthetic": data.synthetic,
+            "_period_start": data.start_date,
+            "_period_end": data.end_date,
         }
 
     @staticmethod

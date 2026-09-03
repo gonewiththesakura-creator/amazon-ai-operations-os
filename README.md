@@ -1,14 +1,14 @@
 # Amazon AI Operations OS
 
-> Current milestone: `M1_7_INFORMATION_ARCHITECTURE_IMPLEMENTED`
+> Current milestone: `M1_8_VISUAL_ANALYTICS_IMPLEMENTED`
 
-Amazon AI Operations OS is an AI-native operating workspace for Amazon store operations and product research. M1.7 adds a deterministic presentation layer and progressive disclosure to the M1.6 Zen Executive workspace while preserving the M1 end-to-end synthetic runtime:
+Amazon AI Operations OS is an AI-native operating workspace for Amazon store operations and product research. M1.8 adds deterministic visual analytics to the M1.7 progressive-disclosure workspace while preserving the M1 end-to-end synthetic runtime:
 
 > Why did orders fall today, and what should I do now?
 
 The running path is:
 
-`PostgreSQL -> deterministic metrics -> Tool Gateway -> Store Operations Agent -> Jarvis Supervisor -> HomeComposition / Chat API -> Next.js`
+`PostgreSQL -> deterministic metrics and visualization tools -> Tool Gateway -> Jarvis Supervisor -> HomeComposition / Visualization API -> Next.js`
 
 All demo records and UI outputs are marked `synthetic=true`. The MVP is read-only: it can create recommendations and approval drafts, but it has no Amazon write tool and does not connect to Amazon or third-party production APIs.
 
@@ -18,13 +18,14 @@ All demo records and UI outputs are marked `synthetic=true`. The MVP is read-onl
 |---|---|---|
 | Next.js Zen Executive workspace | IMPLEMENTED | Judgment-first brief, four summary metrics, three ranked actions, six operating domains, on-demand inspector, persistent composer, responsive drawers |
 | Home presentation model | IMPLEMENTED | Deterministic `HomeComposition -> HomeViewModel` mapping; no arbitrary model-generated UI |
-| FastAPI runtime | IMPLEMENTED | Home, chat, health, and registry endpoints |
+| Visual analytics layer | IMPLEMENTED | Native SVG sparklines/lines, bars and donuts from explicit tool points; no browser-side metric invention |
+| FastAPI runtime | IMPLEMENTED | Home, chat, visualization, health, and registry endpoints |
 | PostgreSQL schema and RLS | IMPLEMENTED | Migrations `0001` through `0005`, tenant-scoped application role |
 | Synthetic generator | IMPLEMENTED | 20 owned ASINs, 365 days, product-research and procurement domains |
 | PostgreSQL synthetic ingestion | IMPLEMENTED | Idempotent loader with provenance and `synthetic=true` |
 | Deterministic store analytics | IMPLEMENTED | Orders, funnel, comparison, anomaly, and SP attribution metrics |
 | Tool Registry | IMPLEMENTED | 22 safe definitions; no external mutation tools |
-| Tool Gateway | IMPLEMENTED | Four real read tools; all others return `NOT_IMPLEMENTED` |
+| Tool Gateway | IMPLEMENTED | Seven real read tools, including series, Top entities, and mix breakdown; all others return `NOT_IMPLEMENTED` |
 | Store Operations Agent | IMPLEMENTED | First bounded domain-agent vertical slice |
 | Jarvis Supervisor | IMPLEMENTED | `DAILY_HOME` and contextual store-question control paths |
 | OpenAI structured orchestration | IMPLEMENTED, OPTIONAL | Disabled by default; strict schema/evidence guard and fallback |
@@ -34,7 +35,7 @@ All demo records and UI outputs are marked `synthetic=true`. The MVP is read-onl
 | SellerSprite / Keepa / public-source ingestion | NOT_IMPLEMENTED | No production connectors in M1 |
 | Amazon external writes | NOT_IMPLEMENTED | Explicitly forbidden in MVP |
 
-## M1.7 Demo
+## M1.8 Demo
 
 The seeded final business day is intentionally anomalous. The Home API automatically selects `ORDER_AD_ANOMALY` and returns registered blocks including Critical Alert, Order Funnel, Sponsored Products diagnosis, priority action, data reference, and follow-up question.
 
@@ -47,7 +48,7 @@ Ask the UI:
 
 The second answer carries the previous run context, labels Sponsored Products attribution `PROVISIONAL`, and does not recommend an immediate bid or budget change before availability and conversion checks.
 
-The formal UI exposes only implemented destinations. The first reading layer contains one judgment, no more than four metrics, and no more than three actions. Six fixed operating domains group the remaining analysis; at most two high-priority domains open by default. Full provenance, raw references, limits, and evidence live only in Inspector. Conversation history lives in its drawer while the home canvas keeps only the latest compact Jarvis response. At responsive widths, navigation and inspector surfaces become keyboard-safe drawers; `Escape` closes them and restores focus.
+The first reading layer contains one judgment, no more than four metrics with source-backed seven-day sparklines, and no more than three actions. Exactly one operating domain is auto-expanded by priority; a user may open at most two, while collapsed domains expose no more than two metrics. Expanded Sales and Advertising domains lazy-load one selectable 30-day primary trend, at most one valid secondary breakdown, one Jarvis insight, and one evidence action. Missing source data means no chart; it is never converted to a fabricated zero series. Full provenance and limitations remain in Inspector.
 
 Warm Light is the default theme. Dark and System modes remain available under Settings. The seeded demo date is `2026-08-31`; override `NEXT_PUBLIC_DEMO_BUSINESS_DATE` when loading a different synthetic or real business day.
 
@@ -133,6 +134,7 @@ With PostgreSQL available, set both `DATABASE_URL` and `TEST_DATABASE_URL` to in
 | `docs/13-interaction-audit.md` | M1.5 interaction inventory, inspector contract, and acceptance evidence |
 | `docs/14-m1.6-zen-executive.md` | M1.6 visual contract, responsive evidence, accessibility and verification |
 | `docs/15-m1.7-information-architecture.md` | M1.7 presentation model, operating-domain and progressive-disclosure contract |
+| `docs/16-m1.8-visual-analytics.md` | M1.8 deterministic visualization contract, density rules, tools, and acceptance |
 
 ## Product and Data Contracts
 
@@ -151,3 +153,4 @@ With PostgreSQL available, set both `DATABASE_URL` and `TEST_DATABASE_URL` to in
 13. [M1.5 interaction audit](docs/13-interaction-audit.md)
 14. [M1.6 Zen Executive acceptance](docs/14-m1.6-zen-executive.md)
 15. [M1.7 information architecture](docs/15-m1.7-information-architecture.md)
+16. [M1.8 visual analytics](docs/16-m1.8-visual-analytics.md)

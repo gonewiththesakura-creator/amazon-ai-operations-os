@@ -2,16 +2,19 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AppShell from "../components/AppShell";
-import { getHomeComposition, sendChatMessage } from "../lib/api";
+import { getHomeComposition, getHomeVisualizations, sendChatMessage } from "../lib/api";
 import type { ChatResponse } from "../types/chat";
 import { homeComposition } from "./fixtures/home";
+import { homeVisualizations } from "./fixtures/visualizations";
 
 vi.mock("../lib/api", () => ({
   getHomeComposition: vi.fn(),
+  getHomeVisualizations: vi.fn(),
   sendChatMessage: vi.fn(),
 }));
 
 const getHome = vi.mocked(getHomeComposition);
+const getVisualizations = vi.mocked(getHomeVisualizations);
 const sendChat = vi.mocked(sendChatMessage);
 
 function chatResponse(runId: string, answer = "订单下降来自流量和转化同时走弱。"):
@@ -50,6 +53,7 @@ describe("AppShell runtime", () => {
   beforeEach(() => {
     window.localStorage.clear();
     getHome.mockResolvedValue(homeComposition());
+    getVisualizations.mockResolvedValue(homeVisualizations());
     sendChat.mockResolvedValue(chatResponse("50000000-0000-4000-8000-000000000001"));
   });
 
@@ -68,6 +72,15 @@ describe("AppShell runtime", () => {
 
     expect(await screen.findByText("Home API 不可用")).toBeInTheDocument();
     expect(screen.getByText(/未使用浏览器内置假数据回退/)).toBeInTheDocument();
+  });
+
+  it("shows an explicit empty state for a valid composition with no usable content", async () => {
+    getHome.mockResolvedValue(homeComposition({ blocks: [], top_actions: [] }));
+    render(<AppShell />);
+
+    expect(await screen.findByText("当前没有可展示内容")).toBeInTheDocument();
+    expect(screen.getByText(/没有可用的指标、行动或经营域信号/)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "订单、流量与转化率同时下降。" })).not.toBeInTheDocument();
   });
 
   it("renders the localized executive composition in the default warm-light theme", async () => {

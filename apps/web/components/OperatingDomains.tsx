@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   Boxes,
   ChevronDown,
@@ -10,21 +11,30 @@ import {
   Telescope,
 } from "lucide-react";
 import type { HomeBlock } from "../types/home";
+import type { VisualizationSpec } from "../types/visualization";
 import {
   detailBlocksForDomain,
   domainStatusLabel,
   type OperatingDomain,
   type OperatingDomainId,
 } from "../view-models/operating-domains";
+import { buildDomainVisualizationModel } from "../view-models/visualizations";
 import { ComponentRegistry } from "./ComponentRegistry";
+
+const DomainAnalytics = dynamic(
+  () => import("./charts/DomainAnalytics").then((module) => module.DomainAnalytics),
+  { loading: () => <div className="domain-chart-loading">正在加载趋势分析…</div> },
+);
 
 type OperatingDomainsProps = {
   domains: OperatingDomain[];
   expandedIds: OperatingDomainId[];
   reducedMotion: boolean;
+  visualizations: readonly VisualizationSpec[];
   onToggle: (domainId: OperatingDomainId) => void;
   onOpenAction: (block: HomeBlock) => void;
   onOpenEvidence: (block: HomeBlock) => void;
+  onOpenVisualizationEvidence: (spec: VisualizationSpec) => void;
   onSubmitFollowUp: (question: string) => void;
 };
 
@@ -41,9 +51,11 @@ export function OperatingDomains({
   domains,
   expandedIds,
   reducedMotion,
+  visualizations,
   onToggle,
   onOpenAction,
   onOpenEvidence,
+  onOpenVisualizationEvidence,
   onSubmitFollowUp,
 }: OperatingDomainsProps) {
   return (
@@ -60,6 +72,7 @@ export function OperatingDomains({
           const expanded = expandedIds.includes(domain.id);
           const Icon = domainIcons[domain.id];
           const detailBlocks = detailBlocksForDomain(domain);
+          const hasAnalytics = buildDomainVisualizationModel(domain.id, visualizations) !== null;
           return (
             <article className={`domain-row domain-status-${domain.status.toLowerCase()}`} key={domain.id}>
               <button
@@ -73,7 +86,7 @@ export function OperatingDomains({
                 <span className="domain-identity"><Icon size={17} /><strong>{domain.title}</strong></span>
                 <span className="domain-copy">{domain.summary}</span>
                 <span className="domain-metrics" aria-label={`${domain.title}关键指标`}>
-                  {domain.metrics.slice(0, 4).map((metric) => (
+                  {domain.metrics.slice(0, 2).map((metric) => (
                     <span key={metric.label}>
                       <small>{metric.label}</small>
                       <strong className={metric.tone ? `tone-${metric.tone}` : ""}>{metric.value}</strong>
@@ -89,7 +102,15 @@ export function OperatingDomains({
 
               {expanded && (
                 <div className="domain-detail" id={`${domain.id}-detail`}>
-                  {detailBlocks.length > 0 ? (
+                  {hasAnalytics ? (
+                    <DomainAnalytics
+                      key={domain.id}
+                      domain={domain}
+                      specs={visualizations}
+                      reducedMotion={reducedMotion}
+                      onOpenVisualizationEvidence={onOpenVisualizationEvidence}
+                    />
+                  ) : detailBlocks.length > 0 ? (
                     detailBlocks.map((block) => (
                       <ComponentRegistry
                         key={block.block_id}

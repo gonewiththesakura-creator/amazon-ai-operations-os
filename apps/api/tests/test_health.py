@@ -18,6 +18,5 @@ def test_readiness_validates_safe_registries(client) -> None:
     assert body["status"] == "ready"
     assert body["components"] == 20
     assert body["agents"] == 12
-    assert body["tools"] == 22
+    assert body["tools"] == 25
     assert body["external_writes_enabled"] is False
-

@@ -27,13 +27,13 @@ describe("OperatingDomain mapping", () => {
     expect(operatingDomainForBlock(homeBlock({ component_type: "approval_request" }))).toBeNull();
   });
 
-  it("always returns six domains and expands at most critical plus highest attention", () => {
+  it("always returns six domains and auto-expands only the highest critical domain", () => {
     const domains = buildOperatingDomains(homeComposition());
 
     expect(new Set(domains.map((domain) => domain.id))).toHaveLength(6);
     expect(domains[0]).toMatchObject({ id: "SALES_CONVERSION", status: "CRITICAL", defaultExpanded: true });
-    expect(domains.find((domain) => domain.id === "ADVERTISING")).toMatchObject({ status: "ATTENTION", defaultExpanded: true });
-    expect(domains.filter((domain) => domain.defaultExpanded)).toHaveLength(2);
+    expect(domains.find((domain) => domain.id === "ADVERTISING")).toMatchObject({ status: "ATTENTION", defaultExpanded: false });
+    expect(domains.filter((domain) => domain.defaultExpanded)).toHaveLength(1);
     expect(domains.filter((domain) => domain.status === "NO_DATA").every((domain) => !domain.defaultExpanded)).toBe(true);
   });
 

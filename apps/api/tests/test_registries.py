@@ -12,7 +12,7 @@ def test_default_registries_are_complete_and_cross_validated() -> None:
     bundle.validate()
     assert len(bundle.components) == 20
     assert len(bundle.agents) == 12
-    assert len(bundle.tools) == 22
+    assert len(bundle.tools) == 25
     assert {item.access_mode for item in bundle.tools.list_public()} == {
         ToolAccessMode.READ_ONLY,
         ToolAccessMode.INTERNAL_DRAFT_WRITE,
@@ -36,6 +36,19 @@ def test_tool_resolution_exposes_only_agent_capability_and_permission_match() ->
         granted_permissions={"analytics:read"},
     )
     assert no_permission == ()
+
+
+def test_visualization_tools_are_registered_read_only_and_non_mutating() -> None:
+    tools = build_default_registries().tools
+
+    definitions = [
+        tools.get(name)
+        for name in ("get_metric_series", "get_top_entities", "get_mix_breakdown")
+    ]
+
+    assert all(item.access_mode is ToolAccessMode.READ_ONLY for item in definitions)
+    assert all(item.required_permission == "analytics:read" for item in definitions)
+    assert all(item.external_mutation is False for item in definitions)
 
 
 def test_external_write_tools_are_rejected_at_registration() -> None:

@@ -106,20 +106,10 @@ export function buildOperatingDomains(composition: HomeComposition): OperatingDo
 }
 
 export function defaultExpandedDomainIds(domains: OperatingDomain[]): OperatingDomainId[] {
-  const critical = domains.filter((domain) => domain.status === "CRITICAL").slice(0, 2);
-  const selected = [...critical];
-
-  if (selected.length < 2) {
-    const attention = domains.find((domain) => domain.status === "ATTENTION");
-    if (attention && !selected.some((domain) => domain.id === attention.id)) selected.push(attention);
-  }
-
-  if (selected.length === 0) {
-    const sales = domains.find((domain) => domain.id === "SALES_CONVERSION");
-    if (sales) selected.push(sales);
-  }
-
-  return selected.slice(0, 2).map((domain) => domain.id);
+  const selected = domains.find((domain) => domain.status === "CRITICAL")
+    ?? domains.find((domain) => domain.status === "ATTENTION")
+    ?? domains.find((domain) => domain.id === "SALES_CONVERSION");
+  return selected ? [selected.id] : [];
 }
 
 export function detailBlocksForDomain(domain: OperatingDomain): HomeBlock[] {

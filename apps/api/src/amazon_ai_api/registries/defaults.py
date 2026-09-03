@@ -133,6 +133,24 @@ def _build_tool_registry() -> ToolRegistry:
             (STORE, ADS, RISK),
         ),
         _tool(
+            "get_metric_series",
+            "Read a deterministic metric time series for visualization.",
+            ("visualization", "series"),
+            (STORE, ADS, LISTING, KEYWORD, INVENTORY, FINANCE),
+        ),
+        _tool(
+            "get_top_entities",
+            "Read a deterministic top-five entity ranking for visualization.",
+            ("visualization", "ranking"),
+            (STORE, ADS, LISTING, INVENTORY, FINANCE),
+        ),
+        _tool(
+            "get_mix_breakdown",
+            "Read a deterministic part-to-whole entity breakdown for visualization.",
+            ("visualization", "mix"),
+            (STORE, ADS, LISTING, INVENTORY, FINANCE),
+        ),
+        _tool(
             "explain_metric_change",
             "Read an evidence-backed metric change decomposition.",
             ("explanation",),

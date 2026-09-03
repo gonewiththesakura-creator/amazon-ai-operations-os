@@ -2,18 +2,21 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AppShell from "../components/AppShell";
-import { getHomeComposition, sendChatMessage } from "../lib/api";
+import { getHomeComposition, getHomeVisualizations, sendChatMessage } from "../lib/api";
 import type { ChatResponse } from "../types/chat";
 import { homeComposition } from "./fixtures/home";
+import { homeVisualizations } from "./fixtures/visualizations";
 
-vi.mock("../lib/api", () => ({ getHomeComposition: vi.fn(), sendChatMessage: vi.fn() }));
+vi.mock("../lib/api", () => ({ getHomeComposition: vi.fn(), getHomeVisualizations: vi.fn(), sendChatMessage: vi.fn() }));
 const getHome = vi.mocked(getHomeComposition);
+const getVisualizations = vi.mocked(getHomeVisualizations);
 const sendChat = vi.mocked(sendChatMessage);
 
 describe("M1.7 progressive disclosure", () => {
   beforeEach(() => {
     window.localStorage.clear();
     getHome.mockResolvedValue(homeComposition());
+    getVisualizations.mockResolvedValue(homeVisualizations());
     sendChat.mockResolvedValue(response("第一条 Jarvis 回答"));
   });
   afterEach(() => cleanup());
@@ -36,13 +39,13 @@ describe("M1.7 progressive disclosure", () => {
     expect(within(main).queryByText("数据状态")).not.toBeInTheDocument();
   });
 
-  it("keeps no more than two domains open and leaves no-data domains collapsed", async () => {
+  it("auto-expands one domain and allows no more than two after user interaction", async () => {
     const user = userEvent.setup();
     render(<AppShell />);
     await screen.findByRole("heading", { name: "经营状况" });
     const toggles = screen.getAllByRole("button", { name: /，(高优先级|需要关注|稳定|正向信号|暂无信号)，(展开|收起)/ });
 
-    await waitFor(() => expect(toggles.filter((button) => button.getAttribute("aria-expanded") === "true")).toHaveLength(2));
+    await waitFor(() => expect(toggles.filter((button) => button.getAttribute("aria-expanded") === "true")).toHaveLength(1));
     const listing = screen.getByRole("button", { name: /商品与 Listing，暂无信号，展开/ });
     await user.click(listing);
     expect(listing).toHaveAttribute("aria-expanded", "true");
@@ -52,7 +55,7 @@ describe("M1.7 progressive disclosure", () => {
   it("keeps raw evidence out of the reading flow and accessible in Inspector", async () => {
     const user = userEvent.setup();
     render(<AppShell />);
-    const evidence = await screen.findByRole("button", { name: "查看依据：订单漏斗" });
+    const evidence = await screen.findByRole("button", { name: "查看依据：订单 · 30D" });
     const main = screen.getByRole("main");
     expect(within(main).queryByText("synthetic:test-sp-api")).not.toBeInTheDocument();
     expect(within(main).queryByText("展开来源与口径")).not.toBeInTheDocument();
@@ -62,6 +65,8 @@ describe("M1.7 progressive disclosure", () => {
     expect(inspector).not.toHaveAttribute("inert");
     expect(screen.getByRole("tab", { name: /依据/ })).toHaveAttribute("aria-selected", "true");
     expect(within(inspector).getByText("synthetic:test-sp-api")).toBeInTheDocument();
+    expect(within(inspector).getByText(/tool:get_metric_series:test/)).toBeInTheDocument();
+    expect(within(inspector).queryByText(/tool:order_funnel:test/)).not.toBeInTheDocument();
   });
 
   it("shows only the latest response on home and moves full history into the conversation drawer", async () => {

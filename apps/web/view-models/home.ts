@@ -34,6 +34,13 @@ export function buildHomeViewModel(composition: HomeComposition): HomeViewModel 
   };
 }
 
+export function hasUsableHomeContent(composition: HomeComposition) {
+  const view = buildHomeViewModel(composition);
+  return view.metrics.length > 0
+    || view.actions.length > 0
+    || view.domains.some((domain) => domain.blocks.length > 0);
+}
+
 function summaryMetrics(composition: HomeComposition, domains: OperatingDomain[]) {
   const all = domains.flatMap((domain) => domain.metrics);
   const byLabel = new Map(all.map((metric) => [metric.label, metric]));

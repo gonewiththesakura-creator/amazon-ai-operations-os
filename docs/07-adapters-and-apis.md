@@ -232,7 +232,9 @@ Identity Resolver 使用显式映射：seller SKU <-> ASIN、Ads advertised SKU/
 | Tool | 输入 | 输出 | 副作用 |
 |---|---|---|---|
 | `get_daily_brief_inputs` | date, scope | 已计算指标与数据健康 | 无 |
-| `get_metric_series` | metric_key, entity, window, basis | 版本化时间序列 | 无 |
+| `get_metric_series` | tenant, marketplace, business_date, store metric, 1-90 day lookback | PostgreSQL 原始顺序时间序列、口径与证据 | 无 |
+| `get_top_entities` | tenant, marketplace, business_date, ASIN metric, 1-90 day lookback, limit 1-5 | 排名前五 ASIN 与证据 | 无 |
+| `get_mix_breakdown` | tenant, marketplace, business_date, ASIN metric, 1-90 day lookback, slices 2-5 | Top N-1 + Other 构成与证据 | 无 |
 | `get_asin_health` | asin_id, date | 销售/流量/广告/库存/排名摘要 | 无 |
 | `get_insight_evidence` | insight_id | 证据、反证、lineage | 无 |
 | `compare_periods` | entity, metric_keys, windows | 同口径比较 | 无 |

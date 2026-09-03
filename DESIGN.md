@@ -38,6 +38,18 @@ colors:
   dark-risk: "#c17c6e"
   dark-risk-soft: "#4b342f"
   dark-info: "#92a4aa"
+  chart-moss: "#6f7868"
+  chart-bronze: "#a58b63"
+  chart-slate: "#6f7f86"
+  chart-clay: "#a86355"
+  chart-neutral: "#9a948a"
+  chart-grid: "#ded9d0"
+  dark-chart-moss: "#9ba493"
+  dark-chart-bronze: "#c1a97f"
+  dark-chart-slate: "#92a4aa"
+  dark-chart-clay: "#c17c6e"
+  dark-chart-neutral: "#8f8b82"
+  dark-chart-grid: "#3b3d37"
 typography:
   display:
     fontFamily: "Noto Serif SC, Source Han Serif SC, Songti SC, STSong, Georgia, serif"
@@ -156,17 +168,25 @@ Warm light is the default world. Paper-like planes, disciplined alignment, serif
 - Serif type carries judgment and important section statements; utility sans carries every control and working detail.
 - Moss owns interaction and selection, champagne marks rare value, and risk remains muted and textual.
 - Evidence stays near the decision but raw references move into the warm paper inspector.
-- M1.7 progressive disclosure keeps the first layer to one judgment, four metrics, three actions, and six fixed operating domains.
+- M1.8 keeps the first layer to one judgment, four metrics, three actions, and six progressively disclosed operating domains with deterministic visual evidence.
 
 ### M1.7 Information Architecture Contract
 
 `HomeComposition` remains the backend contract. The frontend deterministically maps it into a `HomeViewModel`; the model never emits arbitrary HTML, JavaScript, CSS, or component identifiers. The executive layer shows the judgment, up to four stage-aware metrics, and up to three ranked actions. Analysis is grouped into `SALES_CONVERSION`, `ADVERTISING`, `PRODUCT_LISTING`, `INVENTORY_PROFIT`, `SEARCH_RANKING`, and `MARKET_OPPORTUNITY`.
 
-Only critical and attention domains open by default, with a strict maximum of two. Domain details use registered components and a maximum of five blocks. Raw provenance, attribution limitations, evidence chains, and machine-oriented payloads appear only in Inspector. The home canvas keeps the latest compact Jarvis response; full conversation history opens in a dedicated drawer.
+M1.8 supersedes the earlier expansion rule: exactly one domain opens automatically, choosing the highest-priority critical domain, then attention, then Sales and Conversion. A user may keep at most two domains open. Collapsed rows show no more than two metrics. An expanded analytical domain contains at most one primary chart, one secondary chart, one Jarvis insight, and one action row. Raw provenance, attribution limitations, evidence chains, and machine-oriented payloads appear only in Inspector.
+
+### M1.8 Visual Analytics Contract
+
+Chart values come only from registered deterministic visualization sources. Jarvis may select a registered visualization type and emphasis, but cannot create, interpolate, reorder, or zero-fill points. Summary metrics may show a seven-day native SVG sparkline derived from an existing series. Expanded Sales and Advertising domains use a selectable 30-day primary line; a secondary bar, donut, or progress chart appears only when its source grain is valid. Donuts are reserved for part-to-whole data and contain at most five slices. Ranking lines invert the Y axis and show one keyword. No source data means no chart.
+
+Charts use transparent canvases, paper hairlines, 11px minimum labels, tabular numbers, keyboard-focusable points, accessible summaries, and warm-paper tooltips. Heavy analytical components load only inside an expanded domain. The chart palette is semantic and low-chroma: moss, bronze, slate, clay, neutral, and grid, with their exact dark-mode counterparts defined in `styles/tokens.css`.
 
 ## Colors
 
 The default palette is warm ivory and layered paper with near-black ink; dark mode is a low-chroma olive-charcoal translation of the same roles rather than a second visual identity.
+
+Visualization roles are fixed: moss `#6f7868`, bronze `#a58b63`, slate `#6f7f86`, clay `#a86355`, neutral `#9a948a`, and grid `#ded9d0`; dark mode maps them to `#9ba493`, `#c1a97f`, `#92a4aa`, `#c17c6e`, `#8f8b82`, and `#3b3d37`.
 
 ### Primary
 
@@ -250,6 +270,10 @@ The form language is gently softened but still architectural. Small controls use
 Borders are one pixel and semantic. Default controls use the normal hairline, more consequential boundaries use the strong hairline, and moss, champagne, or clay strokes appear only for state. No ordinary text button becomes a pill, and no surface uses a 20px-or-larger decorative radius.
 
 **The Twelve-Pixel Ceiling Rule.** Standard surfaces stop at 12px; full rounding belongs only to avatars, dots, and genuinely circular status geometry.
+
+## Motion
+
+M1.8 motion is bounded and functional: numbers 250-350ms, sparklines 250-400ms, primary lines 300-500ms, domain reveal 180-220ms, and tooltip opacity 0-100ms. The in-app reduced-motion preference and OS setting remove all chart reveal and bar transitions without withholding data or interaction.
 
 ## Components
 

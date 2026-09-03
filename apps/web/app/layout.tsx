@@ -7,6 +7,7 @@ import "../styles/composer.css";
 import "../styles/inspector.css";
 import "../styles/components.css";
 import "../styles/domains.css";
+import "../styles/charts.css";
 import "../styles/responsive.css";
 
 export const metadata: Metadata = {

@@ -14,7 +14,7 @@ from amazon_ai_api.db.repositories.store_metrics import (
     StoreMetricsRepository,
 )
 from amazon_ai_api.registries.defaults import build_default_registries
-from amazon_ai_api.routes import chat, health, home, registries
+from amazon_ai_api.routes import chat, health, home, registries, visualizations
 from amazon_ai_api.orchestration.agents.store_operations import StoreOperationsAgent
 from amazon_ai_api.orchestration.audit import (
     AuditWriter,
@@ -106,6 +106,7 @@ def create_app(
     app.include_router(home.router)
     app.include_router(chat.router)
     app.include_router(registries.router)
+    app.include_router(visualizations.router)
     return app
 
 
